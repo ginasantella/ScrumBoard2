@@ -17,21 +17,31 @@ import Label from '../components/Label';
 import Home from './Home';
 import Register from './Register';
 import navigator from './Navigation';
-//import config from '../../config';
+import config from '../../config';
 
 const StatusBar = require('../components/StatusBar');
 
-const firebase = require('firebase');
+// const firebase = require('firebase');
 
-// Initialize Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyBvTyYRgyYc5gwtL-8Jam3zZbSmz5BiK6E",
-    authDomain: "scrumboard-ab551.firebaseapp.com",
-    databaseURL: "https://scrumboard-ab551.firebaseio.com",
-    storageBucket: "scrumboard-ab551.appspot.com",
-    messagingSenderId: "467416590233"
+// // Initialize Firebase
+// const firebaseConfig = {
+//     apiKey: "AIzaSyBvTyYRgyYc5gwtL-8Jam3zZbSmz5BiK6E",
+//     authDomain: "scrumboard-ab551.firebaseapp.com",
+//     databaseURL: "https://scrumboard-ab551.firebaseio.com",
+//     storageBucket: "scrumboard-ab551.appspot.com",
+//     messagingSenderId: "467416590233"
+// };
+// var firebaseApp = firebase.initializeApp(firebaseConfig);
+
+const firebase = require('firebase');
+const firebaseConfig = {
+  apiKey: config.apiKey,
+  authDomain: config.authDomain,
+  databaseURL: config.databaseURL,
+  storageBucket: config.storageBucket,
+  messagingSenderId: config.messagingSenderId
 };
-var firebaseApp = firebase.initializeApp(firebaseConfig);
+const firebaseApp = firebase.initializeApp(firebaseConfig);
 
 export default class Login extends Component {
     constructor(props) {
@@ -40,7 +50,6 @@ export default class Login extends Component {
         this.state = {
             username: "",
             password: "",
-            //response: ""
         };
 
         //this.signup = this.signup.bind(this);
@@ -109,23 +118,23 @@ export default class Login extends Component {
         </ScrollView> 
     );
   }
-  press() {
-      
-  //execute any code here
+  press = () => {
+    this.props.navigator.push({
+      title: 'Login',
+     component: Login
+    });
 }
 
+//If Register button is clicked the page redirects to teh register page
   toRegister = () =>{
     this.props.navigator.push({
       title: 'New User Registration',
      component: Register
-     // name: 'Register',
     });
   }
 
-
+//Verifies if the password and username are correct to login
 login(){
-    console.log("NAAAVVVVIIGGGAAATOOOORORRRRRRR");
-
     var correctUserName = this.state.username;
     var correctPassword = this.state.password;
     this.usersRef.on("value", (snapshot) => {
@@ -134,15 +143,15 @@ login(){
             if(child.val().id == correctUserName){
                 if(child.val().password == correctPassword){
                     done = true;   
-                    AlertIOS.alert(
-                        'Logged in!',
-                        'Login was successful.',
-                        [
-                            {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
-                        ]
-                        );
-                    console.log("MADE IT FARTHER");
-                    //console.log(this.props.navigator);
+                    //Alert states if the password is correct
+                    // AlertIOS.alert(
+                    //     'Logged in!',
+                    //     'Login was successful.',
+                    //     [
+                    //         {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
+                    //     ]
+                    //     );
+                    //redirects to the home page if login is correct
                     this.props.navigator.push({
                          title: 'Home',
                          component: Home
@@ -176,7 +185,7 @@ login(){
     //end of class
 }
 
-
+//Styles
 const styles = StyleSheet.create({
  scroll: {
     backgroundColor: '#E1D7D8',
