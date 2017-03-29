@@ -21,16 +21,6 @@ import config from '../../config';
 
 const StatusBar = require('../components/StatusBar');
 
-const firebase = require('firebase');
-const firebaseConfig = {
-  apiKey: config.apiKey,
-  authDomain: config.authDomain,
-  databaseURL: config.databaseURL,
-  storageBucket: config.storageBucket,
-  messagingSenderId: config.messagingSenderId
-};
-const firebaseApp = firebase.initializeApp(firebaseConfig);
-
 export default class Login extends Component {
     constructor(props) {
         super(props);
