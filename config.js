@@ -6,3 +6,4 @@ export default  {
     storageBucket: "scrumboard-ab551.appspot.com",
     messagingSenderId: "467416590233"
 };
+
