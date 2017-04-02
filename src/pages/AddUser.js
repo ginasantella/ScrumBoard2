@@ -15,11 +15,15 @@ import Container from '../components/Container';
 import Button from '../components/Button';
 import Label from '../components/Label';
 import navigator from './Navigation';
+import config from '../../config';
+import Login from './Login';
+import firebaseApp from '../../node_modules/firebase/';
+import firebase from 'firebase/app';
 import Home from './Home';
 const StatusBar = require('../components/StatusBar');
 
 
-export default class Login extends Component {
+export default class AddUser extends Component {
     constructor(props) {
         super(props);
 
@@ -27,6 +31,12 @@ export default class Login extends Component {
             username: ""
         };
         this.addUser = this.addUser.bind(this);
+
+        this.usersRef = this.getRef().child('users');
+    }
+
+    getRef() {
+        return firebaseApp.database().ref();
     }
 
   render() {
@@ -58,11 +68,43 @@ export default class Login extends Component {
         </ScrollView> 
     );
   }
-  addUser = () => {
-    this.props.navigator.push({
-        title: 'Home',
-        component: Home
-    });
+//   addUser = () => {
+//     this.props.navigator.push({
+//         title: 'Home',
+//         component: Home
+//     });
+// }
+
+//Verifies if the password and username are correct to login
+addUser(){
+    var correctUserName = this.state.username;
+    this.usersRef.on("value", (snapshot) => {
+        var done = false;
+        snapshot.forEach((child) => {
+            if(child.val().id == correctUserName){
+                    done = true; 
+                    //Alert states if the password is correct
+                    // AlertIOS.alert(
+                    //     'User Additon!',
+                    //     'The user exhists and can be added.',
+                    //     [
+                    //         {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
+                    //     ]
+                    // );
+                    //redirects to the home page if user exhists is correct
+                    this.props.navigator.pop();
+            }
+        });
+        if(done==false){
+            AlertIOS.alert(
+                'Error!',
+                'This user does not exhist! Please add an exhisting user.',
+                 [
+                {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
+            ]
+            );
+        }
+    });
 }
 
 }
