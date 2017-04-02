@@ -188,8 +188,9 @@ constructor(props) {
       );
     }
   }
+module.exports = Home;
 
-
+//Styles 
 const styles = StyleSheet.create({
 topbar: {
   flexDirection: 'row',
@@ -237,5 +238,3 @@ dropdownOptions: {
   height: 200
   }
 });
-
-//module.exports = Example;
