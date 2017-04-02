@@ -24,8 +24,10 @@ export default class Navigation extends Component {
         initialRoute={{
           component: Login,
           title: 'Login',
+          passProps: { username: '' }
         }}
         style={{flex: 1}}
+        
       />
     )
   }

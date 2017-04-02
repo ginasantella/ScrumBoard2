@@ -18,10 +18,13 @@ import Home from './Home';
 import Register from './Register';
 import navigator from './Navigation';
 import config from '../../config';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/database';
 
 const StatusBar = require('../components/StatusBar');
 
-const firebase = require('firebase');
+//const firebase = require('firebase');
 
 const firebaseConfig = {
   apiKey: config.apiKey,
@@ -31,6 +34,7 @@ const firebaseConfig = {
   messagingSenderId: config.messagingSenderId
 };
 const firebaseApp = firebase.initializeApp(firebaseConfig);
+module.exports.firebaseApp = firebaseApp.database();
 
 export default class Login extends Component {
     constructor(props) {
@@ -143,7 +147,10 @@ login(){
                     //redirects to the home page if login is correct
                     this.props.navigator.push({
                          title: 'Home',
-                         component: Home
+                         component: Home,
+                         passProps:{
+                            username: correctUserName
+                         }
                     });
                     }
                     else{
@@ -171,8 +178,13 @@ login(){
     });
 }
 
+    getUsername(){
+        return this.state.username;
+    }
+
     //end of class
 }
+module.exports = Login;
 
 //Styles
 const styles = StyleSheet.create({
