@@ -106,7 +106,6 @@ addUser(){
         }
     });
 }
-
 }
 
 //Styles
