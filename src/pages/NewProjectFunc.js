@@ -33,9 +33,10 @@ const StatusBar = require('../components/StatusBar');
             super(props);
 
             this.state = {
+                username:this.props.username,
                 projectname: "",
                 projectdesc: "",
-                //once: false,
+                once: false,
             };
             this.projectsRef = this.getRef().child('projects');
         }
@@ -45,7 +46,7 @@ const StatusBar = require('../components/StatusBar');
         }
 
     render() {
-                    //console.log("ONCER: " + this.state.once);
+       console.log("ONCER: " + this.state.once);
         return (
             <ScrollView style={styles.scroll}>
             <Container>
@@ -101,14 +102,14 @@ const StatusBar = require('../components/StatusBar');
         var projName = this.state.projectname;
         var projDescription = this.state.projectdesc;
         var done = false;
-        //var once = this.state.once;
-                    //console.log("ONCE1: " + once);
-       // if(once != true){
+        var once = this.state.once;
+        console.log("ONCE1: " + once);
+        if(once != true){
 
         this.projectsRef.on("value", (snapshot) => {
             console.log("ProjName " + projName);
             snapshot.forEach((child) => {
-                if(child.val().name == projName){
+                if(child.val().name == projName && once!=true){
                     done=true;
                     console.log(projName);
                     AlertIOS.alert(
@@ -145,21 +146,28 @@ const StatusBar = require('../components/StatusBar');
 
          });
         if(done == false){
-                        //console.log("ONCE2: " + once);
-           // this.state.once=true;
-            //once=true;
-            // this.usersRef.push({_key: key}){
+            var correctUserName = this.state.username;
+           this.state.once=true;
+            once=true;
             this.projectsRef.push({ description : projDescription,
-            name: projName})
-
-                                this.props.navigator.push({
-                         title: 'Home',
-                     component: Home
-                   });
-                    
-        //}
-        }
-        
+            name: projName, users: {
+                [correctUserName]: true,
+            }})
+            AlertIOS.alert(
+                        'Success!',
+                        'Click Okay to return Home',
+                        [
+                            {text: 'Okay', onPress: () => this.props.navigator.push({
+                                    title: 'Home',
+                                    component: Home,
+                                    passProps:{
+                                        username: correctUserName
+                                    }
+                   }), style: 'cancel'},
+                        ]
+                        );            
+            }
+        }   
     }
 //end of class
 }

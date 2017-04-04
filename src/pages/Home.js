@@ -117,9 +117,13 @@ constructor(props) {
   }*/
 
   toAddProject = () =>{
+    var correctUserName = this.state.username;
     this.props.navigator.push({
       title: 'Add Project',
-     component: NewProjectFunc
+     component: NewProjectFunc,
+      passProps:{
+          username: correctUserName,
+      }
     });
   }
 
