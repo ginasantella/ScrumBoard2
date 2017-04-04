@@ -24,6 +24,7 @@ import firebase from 'firebase/app';
 import StatusBar from '../components/StatusBar';
 import ListItem from '../components/ListItem';
 import AddUser from './AddUser';
+import NewProjectFunc from './NewProjectFunc';
 
 import Menu, {
     MenuContext,
@@ -62,7 +63,7 @@ constructor(props) {
 
    checkProjects(){
     var correctUsername = this.state.username;
-    console.log("Correct username is:"+correctUsername);
+    //console.log("Correct username is:"+correctUsername);
     //this.usersRef = this.projectsRef.getRef().child('users');
     this.projectsRef.on("value", (snapshot) => {
         //var done = false;
@@ -70,22 +71,22 @@ constructor(props) {
         snapshot.forEach((child) => { //each project
              var projectName = '';
           child.forEach(function(data)  { //each attribute
-              console.log("*************here************");
+              //console.log("*************here************");
               var itemName = data.key;
-              console.log("key is "+ itemName);
+             // console.log("key is "+ itemName);
               var itemList = data.val();
               if(itemName=='name'){
-                  console.log("here");
+                 // console.log("here");
                   projectName=itemList;
-                  console.log("project name should be " + projectName);
+                  //console.log("project name should be " + projectName);
               }
-              console.log("Should display usernames: " + itemName + " space " + itemList);
+              //console.log("Should display usernames: " + itemName + " space " + itemList);
               if(itemName=='users'){
                   data.forEach(function(data1){
                       var userID = data1.key;
-                    console.log("username is:" + userID+"***");
+                    //console.log("username is:" + userID+"***");
                     if(userID==correctUsername){
-                        console.log("project is " + projectName);
+                        //console.log("project is " + projectName);
                         projects.push({
                             title: projectName,
                             _key: data1.key,
@@ -116,10 +117,10 @@ constructor(props) {
   }*/
 
   toAddProject = () =>{
-    /*this.props.navigator.push({
+    this.props.navigator.push({
       title: 'Add Project',
-     component: Register
-    });*/
+     component: NewProjectFunc
+    });
   }
 
   render() {

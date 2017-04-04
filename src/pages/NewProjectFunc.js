@@ -35,9 +35,8 @@ const StatusBar = require('../components/StatusBar');
             this.state = {
                 projectname: "",
                 projectdesc: "",
+                //once: false,
             };
-            this.toProject = this.toProject.bind(this);
-        // this.toRegister = this.toRegister.bind(this);
             this.projectsRef = this.getRef().child('projects');
         }
 
@@ -46,6 +45,7 @@ const StatusBar = require('../components/StatusBar');
         }
 
     render() {
+                    //console.log("ONCER: " + this.state.once);
         return (
             <ScrollView style={styles.scroll}>
             <Container>
@@ -84,89 +84,87 @@ const StatusBar = require('../components/StatusBar');
                     <Button 
                         label="CANCEL"
                         styles={{label: styles.buttonBlackText}} 
-                        onPress={this.press.bind(this)} />
+                        onPress={this.cancel.bind(this)} />
                 </Container>
             </View>
         </ScrollView> 
         );
     }
-    press = () => {
-          
-        //execute any code here
-         this.props.navigator.push({
-      title: 'Login',
-     component: Login
-    });
-}
-    
-    
-
-     
-
-
-    toProject(){
-        
-        var projName = this.state.projectname;
-        var projDescription = this.state.projectdesc;
-        
-      
-        this.projectsRef.on("value", (snapshot) => {
-            var done = false;
-            snapshot.forEach((child) => {
-                
-                if(child.val().name == projName){
-                    
-                    done=true;
-                    AlertIOS.alert(
-                            'Error!',
-                            'Project name already exists!',
-                            [
-                                {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
-                            ]
-                            );
-                }
-                    
-                    else if(projName==""){
-                        done = true;   
-                        AlertIOS.alert(
-                            'Error!',
-                            'All required fields must be filled!',
-                            [
-                                {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
-                            ]
-                            );
-                       
-                     
-                        }
-                        else{
-                            console.log("*************************ELSE*********************");
-                          //  onPress = (text) => {
-                                console.log("*************************ON PRESS*********************");
-                                //this.toRegister.bind(this);
-                                console.log("*************************GOOD TO GO*********************");
-
-               
-                               // }
-            }
-                        this.props.navigator.push({
-                             title: 'Home',
-                             component: Home
-                       });
-                      //  }
-                        
-
-        });
-    });
-                    // this.usersRef.push({_key: key}){
-                this.projectsRef.push({ description : projDescription,
-               name: projName})
-                
-       
-}
- //end of class
+    cancel = () => {
+        this.props.navigator.push({
+            title: 'Add Project',
+            component: NewProjectFunc
+        });
     }
 
-  const styles = StyleSheet.create({
+    toProject(){
+        var projName = this.state.projectname;
+        var projDescription = this.state.projectdesc;
+        var done = false;
+        //var once = this.state.once;
+                    //console.log("ONCE1: " + once);
+       // if(once != true){
+
+        this.projectsRef.on("value", (snapshot) => {
+            console.log("ProjName " + projName);
+            snapshot.forEach((child) => {
+                if(child.val().name == projName){
+                    done=true;
+                    console.log(projName);
+                    AlertIOS.alert(
+                        'Error!',
+                        'Project name already exists!',
+                        [
+                            {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
+                        ]
+                        );
+                        return;
+                }
+                else if(projName==""){
+                    done = true;   
+                    AlertIOS.alert(
+                        'Error!',
+                        'All required fields must be filled!',
+                        [
+                            {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
+                        ]
+                        );                     
+                    }
+                else{
+
+                            // console.log("*************************ELSE*********************");
+                            // //  onPress = (text) => {
+                            //     console.log("*************************ON PRESS*********************");
+                            //     //this.toRegister.bind(this);
+                            //     console.log("*************************GOOD TO GO*********************");
+                            //     // }
+                }
+
+                        //  }
+            });
+
+         });
+        if(done == false){
+                        //console.log("ONCE2: " + once);
+           // this.state.once=true;
+            //once=true;
+            // this.usersRef.push({_key: key}){
+            this.projectsRef.push({ description : projDescription,
+            name: projName})
+
+                                this.props.navigator.push({
+                         title: 'Home',
+                     component: Home
+                   });
+                    
+        //}
+        }
+        
+    }
+//end of class
+}
+
+const styles = StyleSheet.create({
  scroll: {
     backgroundColor: '#E1D7D8',
     padding: 30,
