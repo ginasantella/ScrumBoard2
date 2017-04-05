@@ -28,11 +28,15 @@ export default class AddUser extends Component {
         super(props);
 
         this.state = {
-            username: ""
+            username: "",
+            passbackUsername: this.props.username,
+            projectName: this.props.projectName,
+            projectKey: this.props.projectKey,
         };
         this.addUser = this.addUser.bind(this);
 
         this.usersRef = this.getRef().child('users');
+        this.projectsRef = this.getRef().child('projects');
     }
 
     getRef() {
@@ -43,10 +47,10 @@ export default class AddUser extends Component {
     return (
         <ScrollView style={styles.scroll}>
             <Container>
-                <StatusBar title="Add a User" />
+                <StatusBar title={"Add User to: " + this.state.projectName} />
             </Container>
             <Container>
-            <Label text="Username" />
+            <Label text={"Username"} />
             <TextInput
                 style={styles.textInput} 
                 autoCapitalize= 'none'
@@ -78,22 +82,67 @@ export default class AddUser extends Component {
 //Verifies if the password and username are correct to login
 addUser(){
     var correctUserName = this.state.username;
+    var correctProjectKey = this.state.projectKey;
+    var correctProjectName = this.state.projectName;
+    var done = false;
+    var exists = false;
     this.usersRef.on("value", (snapshot) => {
-        var done = false;
+        
         snapshot.forEach((child) => {
             if(child.val().id == correctUserName){
                     done = true; 
-                    //Alert states if the password is correct
-                    // AlertIOS.alert(
-                    //     'User Additon!',
-                    //     'The user exhists and can be added.',
-                    //     [
-                    //         {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
-                    //     ]
-                    // );
-                    //redirects to the home page if user exhists is correct
-                    this.props.navigator.pop();
+                    //add projects attribute
+                    //add projectKey to projects attribute
+                    
+
+                    //add username to users in project
+                    
+                    this.projectsRef.on("value", (snapshot) => {
+                        snapshot.forEach((child) => {
+                            var childKey = child.key;
+                            if(childKey==correctProjectKey){
+                                //console.log("*****current key:" + childKey+"********");
+                                //console.log("*****correct key:" + correctProjectKey+"********");
+                                child.forEach(function(data)  {
+                                var itemName = data.key;
+                                //console.log("*****current attribute:" + itemName+"********");
+                                if(itemName=='users'){
+                                    data.forEach(function(data1){
+                                    var userID = data1.key;
+                                    //console.log("username is:" + userID+"***");
+                                    //console.log("correct is:" + correctUserName+"***");
+                                    if(userID==correctUserName){
+                                            exists = true;
+                                    }
+                                    });
+                                }
+                                });
+                            if(!exists){
+                                child.val().update( {
+                                    users:{
+                                        [correctUserName]: true,
+                                    }
+                                });
+                            }
+                        }
+                    });
+                });
+                if(!exists){
+                    child.val().projects.push( {
+                        [correctProjectKey]: true,
+                    });
+                }
+                else{
+                    AlertIOS.alert(
+                        'Error!',
+                        'This user is already a part of this project',
+                        [
+                        {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
+            ]
+            );
+                }
             }
+            });
         });
         if(done==false){
             AlertIOS.alert(
@@ -104,8 +153,23 @@ addUser(){
             ]
             );
         }
-    });
-}
+        else if(done && !exists){
+            AlertIOS.alert(
+                'Success!',
+                'User was added to the project',
+                 [
+                {text: 'Okay', onPress: () => this.props.navigator.push({
+                                    title: 'Home',
+                                    component: Home,
+                                    passProps:{
+                                        username: this.state.passbackUsername,
+                                    }
+                   }), style: 'cancel'},
+                        ]
+            );
+        }
+    }
+
 }
 
 //Styles

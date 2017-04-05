@@ -31,7 +31,7 @@ navbar: {
   },
   navbarTitle: {
     color: '#FFFFFF',
-    fontSize: 30,
+    fontSize: 22,
     fontFamily: "Helvetica",
     fontWeight: "700"
   },

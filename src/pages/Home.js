@@ -42,6 +42,8 @@ constructor(props) {
         this.state = {
             username: this.props.username,
             message: 'Welcome ' + this.props.username + '!',
+            projectName: '',
+            projectKey: '',
             firstMenuDisabled: false,
             dropdownSelection: '-- Choose --',
             dataSource: new ListView.DataSource({
@@ -90,7 +92,11 @@ constructor(props) {
                         projects.push({
                             title: projectName,
                             _key: data1.key,
+                            projectKey:child.key,
+                            
                         });
+                        //this.setState(
+                          //{projectKey:child._key});
                     }
                   });
               }
@@ -223,13 +229,24 @@ constructor(props) {
       );*/
     }
     _renderItem(item) {
-
+      var correctUserName = this.state.username;
+      var correctProjectName = item.title;
+      var correctProjectKey = item.projectKey;
+    
     const onPress = () => {
       AlertIOS.alert(
         'Project Options',
         null,
         [
-          //{text: 'Complete', onPress: (text) => this.itemsRef.child(item._key).remove()},
+          {text: 'Add User', onPress: (text) => this.props.navigator.push({
+                  title: 'Add Project',
+                  component: AddUser,
+                  passProps:{
+                      username: correctUserName,
+                      projectName: correctProjectName,
+                      projectKey: correctProjectKey,
+                  }
+    })},
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
       );
