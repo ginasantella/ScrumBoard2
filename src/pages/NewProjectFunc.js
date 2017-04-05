@@ -22,12 +22,8 @@ import Login from './Login';
 import firebaseApp from '../../node_modules/firebase/';
 import firebase from 'firebase/app';
 
-//const ActionButton = require('../components/ActionButton');
 const StatusBar = require('../components/StatusBar');
 
-//import * as firebaseConfig from 'firebase';
-//const firebaseApp = firebase.initializeApp(firebaseConfig);
-//const firebaseApp = Login.getFirebaseInstance;
  export default class NewProjectFunc extends Component {
         constructor(props) {
             super(props);
@@ -36,7 +32,6 @@ const StatusBar = require('../components/StatusBar');
                 username:this.props.username,
                 projectname: "",
                 projectdesc: "",
-                once: false,
             };
             this.projectsRef = this.getRef().child('projects');
         }
@@ -46,7 +41,6 @@ const StatusBar = require('../components/StatusBar');
         }
 
     render() {
-       console.log("ONCER: " + this.state.once);
         return (
             <ScrollView style={styles.scroll}>
             <Container>
@@ -69,7 +63,6 @@ const StatusBar = require('../components/StatusBar');
                 style={styles.textInput2} 
                 autoCapitalize= 'none'
                 returnKeyType = "next"
-                autoFocus = {true}
                 onChangeText={(text) =>{
                     this.setState({projectdesc:text});
                 }}/>
@@ -92,9 +85,13 @@ const StatusBar = require('../components/StatusBar');
         );
     }
     cancel = () => {
+        var correctUserName = this.state.username;
         this.props.navigator.push({
             title: 'Add Project',
-            component: NewProjectFunc
+            component: NewProjectFunc, 
+            passProps:{
+                username: correctUserName,
+            }
         });
     }
 
@@ -102,52 +99,55 @@ const StatusBar = require('../components/StatusBar');
         var projName = this.state.projectname;
         var projDescription = this.state.projectdesc;
         var done = false;
-        var once = this.state.once;
-        console.log("ONCE1: " + once);
+        var once = false;
         if(once != true){
-
         this.projectsRef.on("value", (snapshot) => {
-            console.log("ProjName " + projName);
             snapshot.forEach((child) => {
                 if(child.val().name == projName && once!=true){
+                    var correctUserName = this.state.username;
                     done=true;
-                    console.log(projName);
+                    once = true;
                     AlertIOS.alert(
                         'Error!',
                         'Project name already exists!',
-                        [
-                            {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
+                       [
+                            {text: 'Okay', onPress: () =>this.props.navigator.push({
+                                title: 'Add Project',
+                                component: NewProjectFunc,
+                                passProps:{
+                                    username: correctUserName,
+                                }
+                            })},
                         ]
                         );
                         return;
                 }
-                else if(projName==""){
+                else if(projName=="" && once != true){
+                    var correctUserName = this.state.username;
                     done = true;   
+                    once = true;
                     AlertIOS.alert(
                         'Error!',
                         'All required fields must be filled!',
                         [
-                            {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
+                            {text: 'Okay', onPress: () =>this.props.navigator.push({
+                                title: 'Add Project',
+                                component: NewProjectFunc,
+                                passProps:{
+                                    username: correctUserName,
+                                }
+                            })},
                         ]
                         );                     
                     }
                 else{
-
-                            // console.log("*************************ELSE*********************");
-                            // //  onPress = (text) => {
-                            //     console.log("*************************ON PRESS*********************");
-                            //     //this.toRegister.bind(this);
-                            //     console.log("*************************GOOD TO GO*********************");
-                            //     // }
                 }
-
-                        //  }
             });
 
          });
         if(done == false){
             var correctUserName = this.state.username;
-           this.state.once=true;
+            this.state.once=true;
             once=true;
             this.projectsRef.push({ description : projDescription,
             name: projName, users: {
@@ -165,13 +165,14 @@ const StatusBar = require('../components/StatusBar');
                                     }
                    }), style: 'cancel'},
                         ]
-                        );            
-            }
-        }   
+            );            
+        }
+    }   
     }
 //end of class
 }
 
+//Styles
 const styles = StyleSheet.create({
  scroll: {
     backgroundColor: '#E1D7D8',

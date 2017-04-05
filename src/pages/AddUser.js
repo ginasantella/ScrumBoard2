@@ -34,6 +34,7 @@ export default class AddUser extends Component {
             projectKey: this.props.projectKey,
         };
         this.addUser = this.addUser.bind(this);
+        this.cancel = this.cancel.bind(this);
 
         this.usersRef = this.getRef().child('users');
         this.projectsRef = this.getRef().child('projects');
@@ -43,43 +44,52 @@ export default class AddUser extends Component {
         return firebaseApp.database().ref();
     }
 
-  render() {
-    return (
-        <ScrollView style={styles.scroll}>
-            <Container>
-                <StatusBar title={"Add User to: " + this.state.projectName} />
-            </Container>
-            <Container>
-            <Label text={"Username"} />
-            <TextInput
-                style={styles.textInput} 
-                autoCapitalize= 'none'
-                returnKeyType = "next"
-                autoFocus = {true}
-                onChangeText={(text) =>{
-                    this.setState({username:text});
-                }}/>
-            </Container>
-            <View style={styles.footer}>
+    render() {
+        return (
+            <ScrollView style={styles.scroll}>
                 <Container>
-                    <Button 
-                        label="Add New User to a Board"
-                        styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
-                        navigator={this.props.navigator}
-                        onPress={this.addUser.bind(this)} />
+                    <StatusBar title={"Add User to: " + this.state.projectName} />
                 </Container>
-            </View>
-        </ScrollView> 
-    );
-  }
-//   addUser = () => {
-//     this.props.navigator.push({
-//         title: 'Home',
-//         component: Home
-//     });
-// }
+                <Container>
+                <Label text={"Username"} />
+                <TextInput
+                    style={styles.textInput} 
+                    autoCapitalize= 'none'
+                    returnKeyType = "next"
+                    autoFocus = {true}
+                    onChangeText={(text) =>{
+                        this.setState({username:text});
+                    }}/>
+                </Container>
+                <View style={styles.footer}>
+                    <Container>
+                        <Button 
+                            label="Add New User to a Board"
+                            styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
+                            navigator={this.props.navigator}
+                            onPress={this.addUser.bind(this)} />
+                    </Container>
+                    <Container>
+                        <Button 
+                            label="CANCEL"
+                            styles={{label: styles.buttonBlackText}} 
+                            onPress={this.cancel.bind(this)} />
+                    </Container>
+                </View>
+            </ScrollView> 
+        );
+    }
+  cancel = () => {
+    var passbackUsername=this.state.passbackUsername;
+    this.props.navigator.push({
+        title: 'Home',
+        component: Home,
+        passProps:{
+            username: passbackUsername,
+        }
+    });
+}
 
-//Verifies if the password and username are correct to login
 addUser(){
     var correctUserName = this.state.username;
     var correctProjectKey = this.state.projectKey;
@@ -88,128 +98,119 @@ addUser(){
     var exists = false;
     var once =false;
     var second=false;
+
     this.usersRef.on("value", (snapshot) => {
-        
         snapshot.forEach((child) => {
             if(child.val().id == correctUserName){
                     done = true; 
-                    //add projects attribute
-                    //add projectKey to projects attribute
-                    
-
-                    //add username to users in project
-                    
                     this.projectsRef.on("value", (snapshot) => {
                         snapshot.forEach((child) => {
                             var childKey = child.key;
                             if(childKey==correctProjectKey){
-                                //console.log("*****current key:" + childKey+"********");
-                                //console.log("*****correct key:" + correctProjectKey+"********");
                                 child.forEach(function(data)  {
                                 var itemName = data.key;
-                                //console.log("*****current attribute:" + itemName+"********");
-                                if(itemName=='users'){
-                                    data.forEach(function(data1){
-                                    var userID = data1.key;
-                                    //console.log("username is:" + userID+"***");
-                                    //console.log("correct is:" + correctUserName+"***");
-                                    if(userID==correctUserName && once!=true){
-                                            exists = true;
+                                    if(itemName=='users'){
+                                        data.forEach(function(data1){
+                                        var userID = data1.key;
+                                            if(userID==correctUserName && once!=true){
+                                                    exists = true;
+                                            }
+                                        });
+                                        if(!exists && once!=true){
+                                            if(itemName=='users' && once!=true){
+                                            once=true;
+                                                data.ref.update( {
+                                                        [correctUserName]: true,            
+                                                });
+                                            }
+                                        }
                                     }
                                 });
-                                       if(!exists && once!=true){
-                              
-                                
-                                if(itemName=='users' && once!=true){
-                                 once=true;
-                                  //  data.forEach(function(data2){
-                                      
-                                data.ref.update( {
-                                        [correctUserName]: true,            
-                                });
-                                   // });
-                                }
                             }
-                                }
-                         
+                        });
+                    });
+                    if(!exists && second!=true){
+                        child.forEach(function(data)  {
+                        var itemName = data.key;
+                            if(itemName=='projects'){                 
+                                second=true;
+                                data.ref.update( {
+                                    [correctProjectKey]: true,
                                 });
-                            
+                            }
+                        });
+                        if(!second) {
+                            second = true;
+                            child.ref.update( {
+                                projects: {[correctProjectKey]: true,}
+                                
+                            });
                         }
-                    });
-                });
-                if(!exists && second!=true){
-                    second=true;
-                       console.log("****HERE****")
-                    child.ref.update( {
-                        projects : {[correctProjectKey]: true,}
-                        
-                    });
-                }
-                else {
-                    var passbackUsername=this.state.passbackUsername;
-           var projectname = this.state.projectName;
-            var projectKey = this.state.projectKey;
-                    AlertIOS.alert(
-                        'Error!',
-                        'This user is already a part of this project',
-                            [
-          {text: 'Okay', onPress: (text) => this.props.navigator.push({
-                  title: 'Add User',
-                  component: AddUser,
-                  passProps:{
-                      username: passbackUsername,
-                      projectName: projectname,
-                      projectKey: projectKey,
-                  }
-    })},
-          ]
-            );
                 }
             }
-            });
         });
-        if(done==false){
+        if (exists && !second) {
             var passbackUsername=this.state.passbackUsername;
-      
-           var projectname = this.state.projectName;
+            var projectname = this.state.projectName;
             var projectKey = this.state.projectKey;
             AlertIOS.alert(
                 'Error!',
-                'This user does not exist! Please add an existing user.',
-                [
-          {text: 'Okay', onPress: (text) => this.props.navigator.push({
-                  title: 'Add User',
-                  component: AddUser,
-                  passProps:{
-                      username: passbackUsername,
-                      projectName: projectname,
-                      projectKey: projectKey,
-                  }
-    })},
-          ]
+                'This user is already a part of this project',
+                    [
+                        {text: 'Okay', onPress: (text) => this.props.navigator.push({
+                        title: 'Add User',
+                        component: AddUser,
+                        passProps:{
+                            username: passbackUsername,
+                            projectName: projectname,
+                            projectKey: projectKey,
+                            }
+                        })},
+                    ]
             );
         }
-        else if(done && !exists){
-            var passbackUsername=this.state.passbackUsername;
-           var username = this.state.username;
-           var projectname = this.state.projectName;
-            once=true;
-            AlertIOS.alert(
-                'Success!',
-                'User ' + username +' was added to the project '+ projectname +'.',
-                 [
+    });
+    if(done==false){
+        var passbackUsername=this.state.passbackUsername;
+        var projectname = this.state.projectName;
+        var projectKey = this.state.projectKey;
+        AlertIOS.alert(
+            'Error!',
+            'This user does not exist! Please add an existing user.',
+                [
+                {text: 'Okay', onPress: (text) => this.props.navigator.push({
+                title: 'Add User',
+                component: AddUser,
+                    passProps:{
+                        username: passbackUsername,
+                        projectName: projectname,
+                        projectKey: projectKey,
+                    }
+                })},
+                ]
+        );
+    }
+    else if(done && !exists){
+        var passbackUsername=this.state.passbackUsername;
+        var username = this.state.username;
+        var projectname = this.state.projectName;
+        once=true;
+        AlertIOS.alert(
+            'Success!',
+            'User ' + username +' was added to the project '+ projectname +'.',
+                [
                 {text: 'Okay', onPress: () => this.props.navigator.push({
                                     title: 'Home',
                                     component: Home,
                                     passProps:{
                                         username: passbackUsername,
                                     }
-                   }), style: 'cancel'},
-                        ]
-            );
-        }
+                    }), style: 'cancel'},
+                ]
+        );
     }
-
+}
+//End of class
 }
 
 //Styles
@@ -253,5 +254,4 @@ primaryButton: {
 footer: {
    marginTop: 40
 }
-
 });

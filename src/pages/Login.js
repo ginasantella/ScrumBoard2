@@ -24,8 +24,6 @@ import 'firebase/database';
 
 const StatusBar = require('../components/StatusBar');
 
-//const firebase = require('firebase');
-
 const firebaseConfig = {
   apiKey: config.apiKey,
   authDomain: config.authDomain,
@@ -45,10 +43,8 @@ export default class Login extends Component {
             password: "",
         };
 
-        //this.signup = this.signup.bind(this);
         this.login = this.login.bind(this);
         this.toRegister = this.toRegister.bind(this);
-
         this.usersRef = this.getRef().child('users');
     }
 
@@ -111,6 +107,7 @@ export default class Login extends Component {
         </ScrollView> 
     );
   }
+  //Cancel button
   press = () => {
     this.props.navigator.push({
       title: 'Login',
@@ -120,13 +117,9 @@ export default class Login extends Component {
 
 //If Register button is clicked the page redirects to teh register page
   toRegister = () =>{
-   // var correctUserName = this.state.username;
     this.props.navigator.push({
       title: 'Add Project',
      component: RegisterFunc,
-     // passProps:{
-     //     username: correctUserName,
-    //  }
     });
   }
 
@@ -140,15 +133,6 @@ login(){
             if(child.val().id == correctUserName){
                 if(child.val().password == correctPassword){
                     done = true;   
-                    //Alert states if the password is correct
-                    // AlertIOS.alert(
-                    //     'Logged in!',
-                    //     'Login was successful.',
-                    //     [
-                    //         {text: 'Okay', onPress: () => console.log('Okay'), style: 'cancel'},
-                    //     ]
-                    //     );
-                    //redirects to the home page if login is correct
                     this.props.navigator.push({
                          title: 'Home',
                          component: Home,

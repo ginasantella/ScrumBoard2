@@ -50,9 +50,7 @@ constructor(props) {
                 rowHasChanged: (row1, row2) => row1 !== row2,
             }),
         };
-
         this.projectsRef = this.getRef().child('projects');
-
 }
 
   getRef() {
@@ -65,38 +63,26 @@ constructor(props) {
 
    checkProjects(){
     var correctUsername = this.state.username;
-    //console.log("Correct username is:"+correctUsername);
-    //this.usersRef = this.projectsRef.getRef().child('users');
     this.projectsRef.on("value", (snapshot) => {
-        //var done = false;
         var projects =[];
         snapshot.forEach((child) => { //each project
              var projectName = '';
           child.forEach(function(data)  { //each attribute
-              //console.log("*************here************");
               var itemName = data.key;
-             // console.log("key is "+ itemName);
               var itemList = data.val();
               if(itemName=='name'){
-                 // console.log("here");
                   projectName=itemList;
-                  //console.log("project name should be " + projectName);
               }
-              //console.log("Should display usernames: " + itemName + " space " + itemList);
               if(itemName=='users'){
                   data.forEach(function(data1){
                       var userID = data1.key;
-                    //console.log("username is:" + userID+"***");
                     if(userID==correctUsername){
-                        //console.log("project is " + projectName);
                         projects.push({
                             title: projectName,
                             _key: data1.key,
                             projectKey:child.key,
                             
                         });
-                        //this.setState(
-                          //{projectKey:child._key});
                     }
                   });
               }
@@ -108,20 +94,6 @@ constructor(props) {
     });
 
    }
-
-  /*setMessage(value) {
-    if (typeof value === 'string') {
-      this.setState({ message: `You selected "${value}"` });
-    } else {
-      this.setState({ message: `Woah!\n\nYou selected an object:\n\n${JSON.stringify(value)}` });
-    }
-    return value !== 'do not close';
-  }*/
-  
-  /*setFirstMenuDisabled(disabled) {                         
-    return false;
-  }*/
-
   toAddProject = () =>{
     var correctUserName = this.state.username;
     this.props.navigator.push({
@@ -136,10 +108,9 @@ constructor(props) {
   render() {
       return(
     <ScrollView style={styles.scroll}>
-            <Container>
-                <StatusBar title={'Welcome ' + this.state.username} />
-            </Container>
-
+        <Container>
+            <StatusBar title={'Welcome ' + this.state.username} />
+        </Container>
         <ListView
           dataSource={this.state.dataSource}
           renderRow={this._renderItem.bind(this)}
@@ -157,76 +128,6 @@ constructor(props) {
                 </View>
           </ScrollView>
       );
-
-   /*return (
-      <MenuContext style={{ flex: 1 }} ref="MenuContext">
-      <View style={styles.topbar}>
-      <Menu onSelect={this.setMessage}>
-       <MenuTrigger disabled={this.state.firstMenuDisabled} style={styles.menuTrigger}>
-       <Text style={styles.menuTriggerText}>SCRUM</Text>
-       </MenuTrigger>
-       <MenuOptions style={styles.menuOptions}>
-       <MenuOption value="User Profile">
-       <Text>User Profile</Text>
-       </MenuOption>
-        <MenuOption value="Projects Owned">
-        <Text>Projects Owned</Text>
-        </MenuOption>
-         <MenuOption value="disabled" disabled={true}>
-         <Text style={styles.disabled}>Disabled option</Text>
-        </MenuOption>
-          <View style={styles.divider}/>
-         <MenuOption value={{ message: 'Hello World!' }}>
-         <Text>Log Out</Text>
-        </MenuOption>
-        </MenuOptions>
-        </Menu>
-       </View>
-       <View style={[styles.topbar, { backgroundColor: '#333' }]}>
-        <Menu onSelect={this.setFirstMenuDisabled}>
-         <MenuTrigger style={styles.menuTrigger}>
-        <Text style={styles.menuTriggerText}>HOME PAGE</Text>
-        </MenuTrigger>
-        <MenuOptions>
-        {this.state.secondMenuDisabled}
-        </MenuOptions>
-         </Menu>
-         </View>
-         <View style={styles.content}>
-         <Text style={styles.contentText}>
-         { this.state.message }
-        </Text>
-       </View>
-       <View style={styles.content}>
-       <Text style={styles.contentText}>
-       Select desired project:
-       </Text>
-       <Menu style={styles.dropdown} onSelect={(value) => this.setState({ dropdownSelection: value })}>
-        <MenuTrigger>
-        <Text>{this.state.dropdownSelection}</Text>
-        </MenuTrigger>
-       <MenuOptions optionsContainerStyle={styles.dropdownOptions}
-       renderOptionsContainer={(options) => <ScrollView><Text>Current Active Project List...</Text>{options}</ScrollView>}>
-       <MenuOption value="Project One">
-       <Text>Project One</Text>
-       </MenuOption>
-        <MenuOption value="Project Two">
-       <Text>Project Two</Text>
-       </MenuOption>
-       <MenuOption value="Project Three">
-       <Text>Project Three</Text>
-        </MenuOption>
-        <MenuOption value="Project Four">
-        <Text>Project Four</Text>
-        </MenuOption>
-        <MenuOption value="Project Five">
-       <Text>Project Five</Text>
-        </MenuOption>
-         </MenuOptions>
-         </Menu>
-         </View>
-         </MenuContext>              
-      );*/
     }
     _renderItem(item) {
       var correctUserName = this.state.username;
