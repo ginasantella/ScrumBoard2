@@ -149,6 +149,7 @@ addUser(){
                 }
             }
         });
+    });
         if (exists && !second) {
             var passbackUsername=this.state.passbackUsername;
             var projectname = this.state.projectName;
@@ -169,7 +170,7 @@ addUser(){
                     ]
             );
         }
-    });
+    
     if(done==false){
         var passbackUsername=this.state.passbackUsername;
         var projectname = this.state.projectName;
@@ -199,7 +200,7 @@ addUser(){
             'Success!',
             'User ' + username +' was added to the project '+ projectname +'.',
                 [
-                {text: 'Okay', onPress: () => this.props.navigator.push({
+                {text: 'Okay', onPress: (text) => this.props.navigator.push({
                                     title: 'Home',
                                     component: Home,
                                     passProps:{
