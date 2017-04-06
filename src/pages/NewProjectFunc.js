@@ -33,6 +33,7 @@ const StatusBar = require('../components/StatusBar');
                 projectname: "",
                 projectdesc: "",
             };
+            this.usersRef = this.getRef().child('users');
             this.projectsRef = this.getRef().child('projects');
         }
 
@@ -141,18 +142,50 @@ const StatusBar = require('../components/StatusBar');
                         );                     
                     }
                 else{
+                    // this.usersRef.on("value", (snapshot) => {
+                    //     snapshot.forEach((child) => {
+                    //         var childKey = child.key;
+                    //         var correctUserName = this.state.username;
+                    //         console.log("*******ChildKey " + childKey);
+                    //         console.log("*******Username " + correctUserName);
+                            
+                    //             child.forEach(function(data)  {
+                                    
+                    //             var itemName = data.key;
+                    //             if(itemName==correctUserName){
+                    //             console.log("*******itemName " + itemName);
+                    //                 if(itemName=='projects'){  
+                    //                     console.log("*******HERE*********");               
+                    //                     once=true;
+                    //                     data.ref.update( {
+                    //                         [correctProjectKey]: true,
+                    //                     });
+                    //                 }
+                    //             }
+                    //             });
+                    //             if(!once) {
+                    //                 console.log("!!!!!!!!!!!!!!!!!"); 
+                    //                 once = true;
+                    //                 child.ref.update( {
+                    //                     projects: {[correctProjectKey]: true,}
+                                        
+                    //                 });
+                    //             }
+                    //         //}
+                    //     });
+                    // });
                 }
             });
 
          });
         if(done == false){
             var correctUserName = this.state.username;
-            this.state.once=true;
             once=true;
             this.projectsRef.push({ description : projDescription,
             name: projName, users: {
                 [correctUserName]: true,
             }})
+
             AlertIOS.alert(
                         'Success!',
                         'Click Okay to return Home',

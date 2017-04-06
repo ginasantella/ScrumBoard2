@@ -118,7 +118,7 @@ export default class Login extends Component {
 //If Register button is clicked the page redirects to teh register page
   toRegister = () =>{
     this.props.navigator.push({
-      title: 'Add Project',
+      title: 'Registration',
      component: RegisterFunc,
     });
   }
