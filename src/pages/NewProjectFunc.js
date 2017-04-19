@@ -15,7 +15,7 @@ import Container from '../components/Container';
 import Button from '../components/Button';
 import Label from '../components/Label';
 import Home from './Home';
-import Register from './Register';
+import Register from './RegisterFunc';
 import navigator from './Navigation';
 import config from '../../config';
 import Login from './Login';

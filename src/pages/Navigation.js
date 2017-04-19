@@ -12,7 +12,7 @@ import Button from '../components/Button';
 import Label from '../components/Label';
 import Login from './Login';
 import Home from './Home';
-import Register from './Register';
+import Register from './RegisterFunc';
 
 const StatusBar = require('../components/StatusBar');
 
