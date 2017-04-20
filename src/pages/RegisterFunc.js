@@ -25,9 +25,7 @@ import firebase from 'firebase/app';
 //const ActionButton = require('../components/ActionButton');
 const StatusBar = require('../components/StatusBar');
 var users;
-//import * as firebaseConfig from 'firebase';
-//const firebaseApp = firebase.initializeApp(firebaseConfig);
-//const firebaseApp = Login.getFirebaseInstance;
+
  export default class RegisterFunc extends Component {
         constructor(props) {
             super(props);

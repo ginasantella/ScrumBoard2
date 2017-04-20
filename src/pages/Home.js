@@ -25,6 +25,7 @@ import StatusBar from '../components/StatusBar';
 import ListItem from '../components/ListItem';
 import AddUser from './AddUser';
 import NewProjectFunc from './NewProjectFunc';
+import ScrumBoard from './ScrumBoard';
 
 import Menu, {
     MenuContext,
@@ -139,6 +140,15 @@ constructor(props) {
         'Project Options',
         null,
         [
+         {text: 'View Project Scrum Board', onPress: (text) => this.props.navigator.push({
+                      title: 'Scrum Board',
+            component: ScrumBoard,
+            passProps:{
+                username: correctUserName,
+                projectName: correctProjectName,
+                projectKey: correctProjectKey,
+            }
+    })},
           {text: 'Add User', onPress: (text) => this.props.navigator.push({
                   title: 'Add Project',
                   component: AddUser,
