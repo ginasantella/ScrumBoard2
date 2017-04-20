@@ -25,8 +25,6 @@ import navigator from './Navigation';
 import config from '../../config';
 import firebaseApp from '../../node_modules/firebase/';
 import firebase from 'firebase/app';
-import Accordion from 'react-native-accordion';
-import { range } from 'lodash';
 
 const StatusBar = require('../components/StatusBar');
 //var ds = new ListView.DataSource({ rowHasChanged: (row1, row2) => row1 !== row2 })
@@ -38,7 +36,11 @@ export default class ScrumBoard extends Component {
               username: this.props.username,
               projectName: this.props.projectName,
               projectKey: this.props.projectKey,
+              dataSource: new ListView.DataSource({
+                rowHasChanged: (row1, row2) => row1 !== row2,
+              }),
         };
+        this.productBacklogRef = this.getRef().child('prodBacklogs');
     }
 
     getRef() {
@@ -52,26 +54,103 @@ export default class ScrumBoard extends Component {
             <StatusBar title={this.state.projectName + " Scrum Board"} />
         </Container>
         <Panel title="Product Backlog">
-          <Text>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</Text>
+          <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderProductBacklog.bind(this)}
+          enableEmptySections={true}
+          style={styles.listview}/>
         </Panel>
-        <Panel title="Spring Backlog">
-          <Text>Lorem ipsum...</Text>
+        <Panel title="Sprint Backlog">
+          <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderSprintBacklog.bind(this)}
+          enableEmptySections={true}
+          style={styles.listview}/>
         </Panel>
         <Panel title="To Do">
-          <Text>Lorem ipsum dolor sit amet...</Text>
+                    <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderToDoTasks.bind(this)}
+          enableEmptySections={true}
+          style={styles.listview}/>
         </Panel>
         <Panel title="In Progress">
-          <Text>Lorem ipsum dolor sit amet...</Text>
+          <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderInProgressTasks.bind(this)}
+          style={styles.listview}/>
         </Panel>
         <Panel title="Done">
-          <Text>Lorem ipsum dolor sit amet...</Text>
+          <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderDoneTasks.bind(this)}
+          enableEmptySections={true}
+          style={styles.listview}/>
         </Panel>
       </ScrollView>
     );
   }
 
+  renderProductBacklog(item){
+      var correctProjectKey = this.state.projectKey;
+      this.productBacklogRef.on("value", (snapshot) => {
+      var productBacklog =[];
+      snapshot.forEach((child) => { //each product backlog item
+        child.forEach(function(data)  { //each attribute
+            var itemName = data.key;
+            var itemList = data.val();
+            var AC = '';
+            var desc = '';
+            var estimate = '';
+            var userStory = '';
+            if(itemName=='acc'){
+              AC = itemList;
+            }
+            if(itemName=='descrpition'){
+              desc = itemList;
+            }
+            if(itemName=='estimate'){
+              estimate = itemList;
+            }
+            if(itemName=='userStory'){
+              userStory = itemList;
+            }
+            if(itemName=='project'){
+                data.forEach(function(data1){
+                    var projectNameKey = data1.val();
+                  if(projectNameKey==correctProjectKey){
+                      productBacklog.push({
+                            title: userStory,
+                            precentageEstimate: estimate,
+                            description:desc,
+                            AccceptanceCriteria: AC,
+                      });
+                  }
+                });
+            }
+          });    
+        });
+        this.setState({
+            dataSource: this.state.dataSource.cloneWithRows(productBacklog)
+      });
+    });
+  }
 
-//});
+  renderSprintBacklog(item){
+  
+  }
+  
+  renderToDoTasks(item){
+  
+  }
+
+  renderInProgressTasks(item){
+  
+  }
+
+  renderDoneTasks(item){
+  
+  }
 }
 
 AppRegistry.registerComponent('Panels', () => ScrumBoard);
