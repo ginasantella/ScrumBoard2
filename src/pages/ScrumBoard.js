@@ -25,9 +25,7 @@ import navigator from './Navigation';
 import config from '../../config';
 import firebaseApp from '../../node_modules/firebase/';
 import firebase from 'firebase/app';
-import Accordion from 'react-native-accordion';
-import { range } from 'lodash';
-
+import AddPBL from './AddPBL';
 const StatusBar = require('../components/StatusBar');
 //var ds = new ListView.DataSource({ rowHasChanged: (row1, row2) => row1 !== row2 })
 
@@ -38,40 +36,148 @@ export default class ScrumBoard extends Component {
               username: this.props.username,
               projectName: this.props.projectName,
               projectKey: this.props.projectKey,
+              dataSource: new ListView.DataSource({
+                rowHasChanged: (row1, row2) => row1 !== row2,
+              }),
         };
+        this.productBacklogRef = this.getRef().child('prodBacklogs');
     }
 
     getRef() {
         return firebaseApp.database().ref();
     }
+    toAddPL = () =>{
+      var correctProjectName=this.state.projectName;
+      var correctUserName=this.state.username;
+    var correctProjectKey = this.state.projectKey;
+    this.props.navigator.push({
+      title: 'Add New Project Item',
+     component: AddPBL,
+      passProps:{
+          username: correctUserName,
+          projectName: correctProjectName,
+          projectKey:correctProjectKey,
+      }
+    });
+  }
 
     render() {
     return ( 
       <ScrollView style={styles.scroll}>
         <Container>
             <StatusBar title={this.state.projectName + " Scrum Board"} />
-        </Container>
+          </Container>
+    
+
+               <Container>
+                    <Button 
+                        label="Add New Project Item"
+                       styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
+                       navigator={this.props.navigator}
+                        onPress={this.toAddPL.bind(this)} />
+                </Container>
+           
+          
         <Panel title="Product Backlog">
-          <Text>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</Text>
+          <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderProductBacklog.bind(this)}
+          enableEmptySections={true}
+          style={styles.listview}/>
         </Panel>
-        <Panel title="Spring Backlog">
-          <Text>Lorem ipsum...</Text>
+        <Panel title="Sprint Backlog">
+          <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderSprintBacklog.bind(this)}
+          enableEmptySections={true}
+          style={styles.listview}/>
         </Panel>
         <Panel title="To Do">
-          <Text>Lorem ipsum dolor sit amet...</Text>
+                    <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderToDoTasks.bind(this)}
+          enableEmptySections={true}
+          style={styles.listview}/>
         </Panel>
         <Panel title="In Progress">
-          <Text>Lorem ipsum dolor sit amet...</Text>
+          <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderInProgressTasks.bind(this)}
+          style={styles.listview}/>
         </Panel>
         <Panel title="Done">
-          <Text>Lorem ipsum dolor sit amet...</Text>
+          <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this.renderDoneTasks.bind(this)}
+          enableEmptySections={true}
+          style={styles.listview}/>
         </Panel>
+   
+        
       </ScrollView>
     );
   }
 
+  renderProductBacklog(item){
+      var correctProjectKey = this.state.projectKey;
+      this.productBacklogRef.on("value", (snapshot) => {
+      var productBacklog =[];
+      snapshot.forEach((child) => { //each product backlog item
+        child.forEach(function(data)  { //each attribute
+            var itemName = data.key;
+            var itemList = data.val();
+            var AC = '';
+            var desc = '';
+            var estimate = '';
+            var userStory = '';
+            if(itemName=='acc'){
+              AC = itemList;
+            }
+            if(itemName=='descrpition'){
+              desc = itemList;
+            }
+            if(itemName=='estimate'){
+              estimate = itemList;
+            }
+            if(itemName=='userStory'){
+              userStory = itemList;
+            }
+            if(itemName=='project'){
+                data.forEach(function(data1){
+                    var projectNameKey = data1.val();
+                  if(projectNameKey==correctProjectKey){
+                      productBacklog.push({
+                            title: userStory,
+                            precentageEstimate: estimate,
+                            description:desc,
+                            AccceptanceCriteria: AC,
+                      });
+                  }
+                });
+            }
+          });    
+        });
+        this.setState({
+            dataSource: this.state.dataSource.cloneWithRows(productBacklog)
+      });
+    });
+  }
 
-//});
+  renderSprintBacklog(item){
+  
+  }
+  
+  renderToDoTasks(item){
+  
+  }
+
+  renderInProgressTasks(item){
+  
+  }
+
+  renderDoneTasks(item){
+  
+  }
 }
 
 AppRegistry.registerComponent('Panels', () => ScrumBoard);
@@ -90,6 +196,7 @@ var styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 10
 },
+
 container: {
     backgroundColor: '#f2f2f2',
     flex: 1,
@@ -97,6 +204,21 @@ container: {
 listview: {
     flex: 1,
   },
+  buttonWhiteText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: "500",
+    textAlign: 'center',
+    fontFamily: "Helvetica"
+},
+primaryButton: {
+    backgroundColor: '#4169E1',
+    borderColor: 'transparent',
+    borderWidth: 1,
+    paddingLeft: 16,
+    paddingTop: 10,
+    paddingBottom: 10,
+},
 menuTrigger: {
    flexDirection: 'row',
    paddingHorizontal: 10
@@ -128,3 +250,4 @@ scroll: {
     flexDirection: 'column'
 },
 });
+
