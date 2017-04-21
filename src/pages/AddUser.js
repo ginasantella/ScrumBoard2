@@ -8,7 +8,21 @@ import {
   ScrollView,
   AlertIOS,
   NavigatorIOS,
+//  Picker,
 } from 'react-native';
+// const Dropdown = require('react-native-dropdown');
+// const {
+//   Select,
+//   Option,
+//   OptionList,
+//   updatePosition
+// } = DropDown;
+
+// import DropDown, {
+//   Select,
+//   Option,
+//   OptionList,
+// } from 'react-native-selectme';
  
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Container from '../components/Container';
@@ -21,6 +35,20 @@ import firebaseApp from '../../node_modules/firebase/';
 import firebase from 'firebase/app';
 import Home from './Home';
 const StatusBar = require('../components/StatusBar');
+import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-native-simple-radio-button';
+
+var radio_props = [
+  {label: 'Dev Team', value: 0 },
+  {label: 'Product Owner', value: 1 }
+];
+
+//var Item = Picker.Item;
+// import Menu, {
+//     MenuContext,
+//     MenuOptions,
+//     MenuOption,
+//     MenuTrigger
+// } from 'react-native-menu';
 
 
 export default class AddUser extends Component {
@@ -29,6 +57,8 @@ export default class AddUser extends Component {
 
         this.state = {
             username: "",
+            value:0,
+            role:"",
             passbackUsername: this.props.username,
             projectName: this.props.projectName,
             projectKey: this.props.projectKey,
@@ -43,6 +73,23 @@ export default class AddUser extends Component {
     getRef() {
         return firebaseApp.database().ref();
     }
+
+    //  _getOptionList() {
+    //     return this.refs['OPTIONLIST'];
+    // }
+    // _setRole(rolename) {
+    //     this.setState({
+    //     ...this.state,
+    //     role: rolename
+    //     });
+    // }
+
+//     onValueChange(rolename){
+//     this.setState({
+//         ...this.state,
+//         role: rolename
+//         });
+// }
 
     render() {
         return (
@@ -61,6 +108,62 @@ export default class AddUser extends Component {
                         this.setState({username:text});
                     }}/>
                 </Container>
+                <Container>
+                    <Label text={"Role"} style={styles.labelText}/>
+                    {/*<TextInput
+                    style={styles.textInput} 
+                    autoCapitalize= 'none'
+                    returnKeyType = "next"
+                    onChangeText={(text) =>{
+                        this.setState({role:text});
+                    }}/>*/}
+                
+                    <View>
+                        <RadioForm
+                            radio_props={radio_props}
+                            initial={0}
+                            onPress={(value) => {this.setState({value:value})}}/>
+                    </View>
+                    </Container>
+                    {/*<Picker
+                        selectedValue={this.state.role}
+                        onValueChange={(name) => {this.setState({role:name});}}>
+                        <Item label="Dev Team" value="Dev Team" />
+                        <Item label="Product Owner" value="Product Owner" />
+                    </Picker>*/}
+                    {/*<Label text={"Role"} />
+                    <View style={styles.dropdown}>
+                    <Select
+                        optionListRef={this._getOptionList.bind(this)}
+                        defaultValue="Dev Team"
+                        onSelect={this._setRole.bind(this)}>
+                        <Option>Dev Team</Option>
+                        <Option>Product Owner</Option>                        
+                        </Select>
+                        <OptionList ref="OPTIONLIST"/>
+                        </View>*/}
+                
+                    {/*<MenuContext style={{ flex: 1 }} ref="MenuContext">
+                        <View style={styles.content}>
+                            <Text style={styles.contentText}>
+                                Select desired role:
+                            </Text>
+                            <Menu style={styles.dropdown} onSelect={(value) => this.setState({ role: value })}>
+                            <MenuTrigger value="Dev Team">
+                            <Text>Dev Team</Text>
+                            </MenuTrigger>
+                            <MenuOptions optionsContainerStyle={styles.dropdownOptions}
+                            renderOptionsContainer={(options) => <ScrollView><Text>Roles</Text>{options}</ScrollView>}>
+                            <MenuOption value="Dev Team">
+                            <Text>Dev Team</Text>
+                            </MenuOption>
+                            <MenuOption value="Product Owner">
+                            <Text>Product Owner</Text>
+                            </MenuOption>
+                            </MenuOptions>
+                            </Menu>
+                        </View>
+                    </MenuContext> */}
                 <View style={styles.footer}>
                     <Container>
                         <Button 
@@ -94,6 +197,12 @@ addUser(){
     var correctUserName = this.state.username;
     var correctProjectKey = this.state.projectKey;
     var correctProjectName = this.state.projectName;
+    var correctRole = "Dev Team";
+    var correctValue = this.state.value;
+    if(correctValue==1){
+        correctRole="Product Owner";
+    }
+
     var done = false;
     var exists = false;
     var once =false;
@@ -120,7 +229,7 @@ addUser(){
                                             if(itemName=='users' && once!=true){
                                             once=true;
                                                 data.ref.update( {
-                                                        [correctUserName]: true,            
+                                                        [correctUserName]: correctRole,            
                                                 });
                                             }
                                         }
@@ -135,14 +244,14 @@ addUser(){
                             if(itemName=='projects'){                 
                                 second=true;
                                 data.ref.update( {
-                                    [correctProjectKey]: true,
+                                    [correctProjectKey]: correctRole,
                                 });
                             }
                         });
                         if(!second) {
                             second = true;
                             child.ref.update( {
-                                projects: {[correctProjectKey]: true,}
+                                projects: {[correctProjectKey]: correctRole}
                                 
                             });
                         }
@@ -198,7 +307,7 @@ addUser(){
         once=true;
         AlertIOS.alert(
             'Success!',
-            'User ' + username +' was added to the project '+ projectname +'.',
+            'User was added to the project.',
                 [
                 {text: 'Okay', onPress: (text) => this.props.navigator.push({
                                     title: 'Home',
@@ -220,6 +329,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#E1D7D8',
     padding: 30,
     flexDirection: 'column'
+},
+picker: {
+    flex:1,
+  },
+content: {
+   backgroundColor: '#E1D7D8',
+   padding: 50,
+   flexDirection: 'column'                                 
+},
+contentText: {
+   fontSize: 18
+},
+labelText: {
+   fontSize: 12
+},
+dropdown: {
+   height: 40,
+   backgroundColor: '#FFF',
+   flex:1,
+   },
+dropdownOptions: {
+  marginTop: 30,
+  borderColor: '#ccc',
+  borderWidth: 2,
+  width: 300,
+  height: 200
 },
 label: {
     color: '#0d8898',
