@@ -22,6 +22,7 @@ import Label from '../components/Label';
 import Panel from '../components/Panel';
 import Home from './Home';
 import navigator from './Navigation';
+import ListItem from '../components/ListItem';
 import config from '../../config';
 import firebaseApp from '../../node_modules/firebase/';
 import firebase from 'firebase/app';
@@ -39,6 +40,7 @@ export default class ScrumBoard extends Component {
               dataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
               }),
+              loaded: false,
         };
         this.productBacklogRef = this.getRef().child('prodBacklogs');
     }
@@ -46,6 +48,57 @@ export default class ScrumBoard extends Component {
     getRef() {
         return firebaseApp.database().ref();
     }
+
+  componentDidMount() {
+    this.renderProductBacklog();
+   }
+
+    renderProductBacklog(){
+    var correctProjectKey = this.state.projectKey;
+    this.productBacklogRef.on("value", (snapshot) => {
+    var productBacklog =[];
+    snapshot.forEach((child) => { //each product backlog item
+      var childVal = child;
+      child.forEach(function(data)  { //each attribute
+          var itemName = data.key;
+          var itemList = data.val();
+          var AC = '';
+          var desc = '';
+          var estimate = '';
+          var userStory = '';
+          if(itemName=='acc'){
+            AC = itemList;
+          }
+          if(itemName=='descrpition'){
+            desc = itemList;
+          }
+          if(itemName=='estimate'){
+            estimate = itemList;
+          }
+          if(itemName=='userStory'){
+            userStory = itemList;
+          }
+          if(itemName=='project'){
+            console.log("^^^^^^^^^^^^^^^^^^^^^INSIDE PROJECTS");
+                if(itemList==correctProjectKey){
+                  console.log("ITEM LIST: " + itemList);
+                  console.log("CORRECT PROJECT KEY: " + correctProjectKey);
+                  console.log('WORKS!!!!!!!');
+                      productBacklog.push({
+                          title: userStory,
+                          _key: itemName,
+                          
+                      });
+                }
+          }
+        });    
+      });
+      this.setState({
+          dataSource: this.state.dataSource.cloneWithRows(productBacklog)
+    });
+  });
+}
+
     toAddPL = () =>{
       var correctProjectName=this.state.projectName;
       var correctUserName=this.state.username;
@@ -62,6 +115,9 @@ export default class ScrumBoard extends Component {
   }
 
     render() {
+      // if(!this.state.loaded){
+      //   return this.renderProductBacklog();
+      // }
     return ( 
       <ScrollView style={styles.scroll}>
         <Container>
@@ -77,26 +133,34 @@ export default class ScrumBoard extends Component {
                         onPress={this.toAddPL.bind(this)} />
                 </Container>
            
-          
-        <Panel title="Product Backlog">
+
+               {/*<Container>
+                    <Button 
+                        label="RENDER"
+                       styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
+                       navigator={this.props.navigator}
+                        onPress={this.renderProductBacklog.bind(this)} />
+                </Container>*/}
+
+        <Panel title="Product Backlog" onPress={this.renderProductBacklog.bind(this)}>
           <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderProductBacklog.bind(this)}
-          enableEmptySections={true}
+
           style={styles.listview}/>
         </Panel>
         <Panel title="Sprint Backlog">
           <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderSprintBacklog.bind(this)}
-          enableEmptySections={true}
+
           style={styles.listview}/>
         </Panel>
         <Panel title="To Do">
-                    <ListView
+        <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderToDoTasks.bind(this)}
-          enableEmptySections={true}
+
           style={styles.listview}/>
         </Panel>
         <Panel title="In Progress">
@@ -109,7 +173,7 @@ export default class ScrumBoard extends Component {
           <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderDoneTasks.bind(this)}
-          enableEmptySections={true}
+
           style={styles.listview}/>
         </Panel>
    
@@ -118,50 +182,7 @@ export default class ScrumBoard extends Component {
     );
   }
 
-  renderProductBacklog(item){
-      var correctProjectKey = this.state.projectKey;
-      this.productBacklogRef.on("value", (snapshot) => {
-      var productBacklog =[];
-      snapshot.forEach((child) => { //each product backlog item
-        child.forEach(function(data)  { //each attribute
-            var itemName = data.key;
-            var itemList = data.val();
-            var AC = '';
-            var desc = '';
-            var estimate = '';
-            var userStory = '';
-            if(itemName=='acc'){
-              AC = itemList;
-            }
-            if(itemName=='descrpition'){
-              desc = itemList;
-            }
-            if(itemName=='estimate'){
-              estimate = itemList;
-            }
-            if(itemName=='userStory'){
-              userStory = itemList;
-            }
-            if(itemName=='project'){
-                data.forEach(function(data1){
-                    var projectNameKey = data1.val();
-                  if(projectNameKey==correctProjectKey){
-                      productBacklog.push({
-                            title: userStory,
-                            precentageEstimate: estimate,
-                            description:desc,
-                            AccceptanceCriteria: AC,
-                      });
-                  }
-                });
-            }
-          });    
-        });
-        this.setState({
-            dataSource: this.state.dataSource.cloneWithRows(productBacklog)
-      });
-    });
-  }
+
 
   renderSprintBacklog(item){
   
