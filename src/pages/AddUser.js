@@ -109,8 +109,8 @@ export default class AddUser extends Component {
                     }}/>
                 </Container>
                 <Container>
-                    <Label text={"Role"} style={styles.labelText}/>
-                    {/*<TextInput
+                    {/*<Label text={"Role"} style={styles.labelText}/>
+                    <TextInput
                     style={styles.textInput} 
                     autoCapitalize= 'none'
                     returnKeyType = "next"
@@ -231,6 +231,7 @@ addUser(){
                                                 data.ref.update( {
                                                         [correctUserName]: correctRole,            
                                                 });
+                                                //break;
                                             }
                                         }
                                     }
@@ -238,24 +239,26 @@ addUser(){
                             }
                         });
                     });
-                    if(!exists && second!=true){
-                        child.forEach(function(data)  {
-                        var itemName = data.key;
-                            if(itemName=='projects'){                 
-                                second=true;
-                                data.ref.update( {
-                                    [correctProjectKey]: correctRole,
-                                });
-                            }
-                        });
-                        if(!second) {
-                            second = true;
-                            child.ref.update( {
-                                projects: {[correctProjectKey]: correctRole}
+                //     if(!exists && second!=true){
+                //         child.forEach(function(data)  {
+                //         var itemName = data.key;
+                //             if(itemName=='projects'){                 
+                //                 second=true;
+                //                 data.ref.update( {
+                //                     [correctProjectKey]: correctRole,
+                //                 });
+                //                 //break;
+                //             }
+                //         });
+                //         if(!second) {
+                //             second = true;
+                //             child.ref.update( {
+                //                 projects: {[correctProjectKey]: correctRole}
                                 
-                            });
-                        }
-                }
+                //             });
+                //             //break;
+                //         }
+                // }
             }
         });
     });
