@@ -40,10 +40,7 @@ export default class Invitations extends Component{
 
 constructor(props) {
         super(props);
-        this.icons = {  
-            'x'    : require('../images/x.png'),
-            'check'  : require('../images/check.png')
-        };
+
         this.state = {
             username: this.props.username,
             message: 'Welcome ' + this.props.username + '!',
