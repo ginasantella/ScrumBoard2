@@ -46,8 +46,6 @@ constructor(props) {
             message: 'Welcome ' + this.props.username + '!',
             projectName: '',
             projectKey: '',
-            firstMenuDisabled: false,
-            dropdownSelection: '-- Choose --',
             dataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
             }),
@@ -87,7 +85,6 @@ constructor(props) {
                                         title: projectName,
                                         _key: data1.key,
                                         projectKey:child.key,
-                                        
                                     });
                                 }
                             }
@@ -119,14 +116,21 @@ constructor(props) {
       return(
     <ScrollView style={styles.scroll}>
         <Container>
-            <StatusBar title={'Pending Invitations'} />
+            <View>
+                <View style={styles.statusbar}/>
+                <View style={styles.navbar}>
+                <Text style={styles.navbarTitle}>Pending Invitations</Text>
+            </View>
+      </View>
         </Container>
         <ListView
           dataSource={this.state.dataSource}
           renderRow={this._renderItem.bind(this)}
           enableEmptySections={true}
           style={styles.listview}/>
-
+          {this.state.dataSource.getRowCount() == 0 ?
+              <Text style = {styles.textLabel}>You have no pending inviations to scrum boards. </Text> : <Text></Text>
+          }
           <View style={styles.footer}>
                <Container>
                     <Button 
@@ -140,79 +144,82 @@ constructor(props) {
       );
     }
 
-    acceptInvite(correctProjectKey){
-            var correctUsername = this.state.username;
-    this.projectsRef.on("value", (snapshot) => {
-        snapshot.forEach((child) => { //each project
-             var projectName = '';
-          child.forEach(function(data)  { //each attribute
-              var itemName = data.key;
-              var itemList = data.val();
-              if(itemName=='name'){
-                  projectName=itemList;
-              }
-              if(itemName=='users'){
-                  data.forEach(function(data1){
-                      var userID = data1.key;
-                    if(userID==correctUsername){
-                        data1.forEach(function(data2){
-                            if(data2.key == 'pending'){
-                                var pendingVal = data2.val();
-                                if(pendingVal == true){
-                                    if(itemList == data.val()){
-                                    data1.ref.update( {
-                                            [data2.key]: false    
-                                    });
+    acceptInvite(item){
+        var correctUsername = this.state.username;
+        var correctProjectName = this.state.projectName;
+        this.projectsRef.on("value", (snapshot) => {
+            snapshot.forEach((child) => { //each project
+                var projectName = '';
+            child.forEach(function(data)  { //each attribute
+                var itemName = data.key;
+                var itemList = data.val();
+                if(itemName=='name'){
+                    projectName=itemList;
+                }
+                if(itemName=='users'){
+                    data.forEach(function(data1){ //each user
+                        var userID = data1.key;
+                        if(userID==correctUsername){
+                            data1.forEach(function(data2){ //each attribute of user
+                                if(data2.key == 'pending'){
+                                    var pendingVal = data2.val();
+                                    if(pendingVal == true){
+                                        if(projectName == correctProjectName){
+                                            data1.ref.update( {
+                                                    [data2.key]: false    
+                                            });
+                                        }
                                     }
-
                                 }
-                            }
-                        });
-                    }
-                  });
-              }
-          });    
+                            });
+                        }
+                    });
+                }
+            });    
+            });
         });
-    });
-}
+    }
 
     rejectInvite(correctProjectKey){
-            var correctUsername = this.state.username;
-    this.projectsRef.on("value", (snapshot) => {
-        snapshot.forEach((child) => { //each project
-             var projectName = '';
-          child.forEach(function(data)  { //each attribute
-              var itemName = data.key;
-              var itemList = data.val();
-              if(itemName=='name'){
-                  projectName=itemList;
-              }
-              if(itemName=='users'){
-                  data.forEach(function(data1){
-                      var userID = data1.key;
-                    if(userID==correctUsername){
-                        data1.forEach(function(data2){
-                            if(data2.key == 'pending'){
-                                var pendingVal = data2.val();
-                                if(pendingVal == true){
-                                    data1.ref.remove();
+        var correctUsername = this.state.username;
+        var correctProjectName = this.state.projectName;
+        this.projectsRef.on("value", (snapshot) => {
+            snapshot.forEach((child) => { //each project
+                var projectName = '';
+            child.forEach(function(data)  { //each attribute
+                var itemName = data.key;
+                var itemList = data.val();
+                if(itemName=='name'){
+                    projectName=itemList;
+                }
+                if(itemName=='users'){
+                    data.forEach(function(data1){
+                        var userID = data1.key;
+                        if(userID==correctUsername){
+                            data1.forEach(function(data2){
+                                if(data2.key == 'pending'){
+                                    var pendingVal = data2.val();
+                                    if(pendingVal == true){
+                                        if([projectName] == correctProjectName){
+                                            data1.ref.remove();
+                                        }
+                                    }
                                 }
-                            }
-                        });
-                    }
-                  });
-              }
-          });    
+                            });
+                        }
+                    });
+                }
+            });    
+            });
         });
-    });
     }
 
     _renderItem(item) {
       var correctUserName = this.state.username;
-      var correctProjectName = item.title;
-      var correctProjectKey = item.projectKey;
     
     const onPress = () => {
+        this.state.projectName = item.title;
+        this.state.projectKey = item.projectKey;
       AlertIOS.alert(
         'Invitation Response',
         null,
@@ -220,6 +227,7 @@ constructor(props) {
          {text: 'Accept', onPress: this.acceptInvite.bind(this)},
 
           {text: 'Reject', onPress: this.rejectInvite.bind(this)},
+
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
       );
@@ -245,6 +253,33 @@ container: {
     backgroundColor: '#f2f2f2',
     flex: 1,
   },
+navbar: {
+    alignItems: 'center',
+    backgroundColor: '#663399',
+    borderColor: 'transparent',
+    borderWidth: 1,
+    justifyContent: 'center',
+    paddingBottom: 1,
+    paddingTop: 1,
+    height: 60,
+    flexDirection: 'row'
+  },
+  navbarTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontFamily: "Helvetica",
+    fontWeight: "700"
+  },
+  statusbar: {
+    height: 1,
+  },
+textLabel: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    fontFamily: 'Verdana',
+    marginBottom: 10,
+    color: '#000'
+},
 listview: {
     flex: 1,
   },
@@ -272,19 +307,6 @@ content: {
    flexDirection: 'column'                                 },
    contentText: {
    fontSize: 18
-   },
-dropdown: {
-   width: 300,
-   borderColor: '#999',
-   borderWidth: 1,
-   padding: 5
-   },
-dropdownOptions: {
-  marginTop: 30,
-  borderColor: '#ccc',
-  borderWidth: 2,
-  width: 300,
-  height: 200
 },
 scroll: {
     backgroundColor: '#E1D7D8',
