@@ -269,7 +269,7 @@ addUser(){
             var projectKey = this.state.projectKey;
             AlertIOS.alert(
                 'Error!',
-                'This user has already been invited to the project.',
+                'This user has already been been added to the project or has a pending invitation to the project.',
                     [
                         {text: 'Okay', onPress: (text) => this.props.navigator.push({
                         title: 'Add User',
