@@ -46,6 +46,8 @@ constructor(props) {
             message: 'Welcome ' + this.props.username + '!',
             projectName: '',
             projectKey: '',
+            description: '',
+            role: '',
             dataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
             }),
@@ -67,9 +69,14 @@ constructor(props) {
         var projects =[];
         snapshot.forEach((child) => { //each project
              var projectName = '';
+             var description = '';
+             var roleVar = '';
           child.forEach(function(data)  { //each attribute
               var itemName = data.key;
               var itemList = data.val();
+              if(itemName =='description'){
+                  description = itemList;
+              }
               if(itemName=='name'){
                   projectName=itemList;
               }
@@ -78,13 +85,18 @@ constructor(props) {
                       var userID = data1.key;
                     if(userID==correctUsername){
                         data1.forEach(function(data2){
+                            if(data2.key == '_role'){
+                                roleVar = data2.val();
+                            }
                             if(data2.key == 'pending'){
                                 var pendingVal = data2.val();
                                 if(pendingVal == true){
                                     projects.push({
+                                        personRole: roleVar,
                                         title: projectName,
                                         _key: data1.key,
                                         projectKey:child.key,
+                                        desc: description,
                                     });
                                 }
                             }
@@ -220,8 +232,12 @@ constructor(props) {
     const onPress = () => {
         this.state.projectName = item.title;
         this.state.projectKey = item.projectKey;
+        this.state.description = item.desc;
+        this.state.role = item.personRole;
       AlertIOS.alert(
-        'Invitation Response',
+        'Invitation response to ' + item.title + '\n' + 
+        'Description: ' + this.state.description + '\n' +
+        'Assigned role: ' + this.state.role,
         null,
         [
          {text: 'Accept', onPress: this.acceptInvite.bind(this)},

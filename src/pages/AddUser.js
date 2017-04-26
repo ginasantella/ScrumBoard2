@@ -229,7 +229,7 @@ addUser(){
                                             if(itemName=='users' && once!=true){
                                             once=true;
                                                 data.ref.update( {
-                                                        [correctUserName]: {role: correctRole,
+                                                        [correctUserName]: {_role: correctRole,
                                                         pending: true}            
                                                 });
                                                 //break;

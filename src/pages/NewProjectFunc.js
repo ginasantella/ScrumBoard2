@@ -184,7 +184,7 @@ const StatusBar = require('../components/StatusBar');
             once=true;
             this.projectsRef.push({ description : projDescription,
             name: projName, users: {
-                [correctUserName]: {role: 'Dev Team',
+                [correctUserName]: {_role: 'Dev Team',
                 pending: false}
             }})
 
