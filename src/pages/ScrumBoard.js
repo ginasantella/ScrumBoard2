@@ -14,6 +14,8 @@ import {
   TouchableHighlight, 
   Animated,
 } from 'react-native';
+
+import Accordion from 'react-native-accordion';
  
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Container from '../components/Container';
@@ -37,10 +39,16 @@ export default class ScrumBoard extends Component {
               username: this.props.username,
               projectName: this.props.projectName,
               projectKey: this.props.projectKey,
+              productBacklog:[],
+              sprintBacklog:[],
               dataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
               }),
+              sprintDataSource: new ListView.DataSource({
+                rowHasChanged: (row1, row2) => row1 !== row2,
+              }),
               loaded: false,
+              
         };
         this.productBacklogRef = this.getRef().child('prodBacklogs');
     }
@@ -50,53 +58,100 @@ export default class ScrumBoard extends Component {
     }
 
   componentDidMount() {
-    this.renderProductBacklog();
+    this.updateProductBacklog();
    }
 
-    renderProductBacklog(){
+    updateProductBacklog(){
     var correctProjectKey = this.state.projectKey;
+    console.log("$%^&*() Project key is: " + correctProjectKey + " $%^&*()");
     this.productBacklogRef.on("value", (snapshot) => {
-    var productBacklog =[];
-    snapshot.forEach((child) => { //each product backlog item
+      var thisProductBacklog =[];
+      var thisSprintBacklog =[];
+      snapshot.forEach((child) => { //each product backlog item
       var childVal = child;
+      var AC = '';
+      var desc = '';
+      var estimate = '';
+      var userStory = '';
+      var status = '';
       child.forEach(function(data)  { //each attribute
           var itemName = data.key;
+          console.log("$$$ Key is: " + itemName + " $$$");
           var itemList = data.val();
-          var AC = '';
-          var desc = '';
-          var estimate = '';
-          var userStory = '';
+          console.log("$$$ Val is: " + itemList + " $$$");
+          
           if(itemName=='acc'){
             AC = itemList;
           }
-          if(itemName=='descrpition'){
+          else if(itemName=='description'){
             desc = itemList;
           }
-          if(itemName=='estimate'){
+          else if(itemName=='estimate'){
             estimate = itemList;
           }
-          if(itemName=='userStory'){
+          else if(itemName=='_userStory'){
             userStory = itemList;
+            console.log('CORRECT User story is: ' + userStory);
+
           }
-          if(itemName=='project'){
+          else if(itemName=='location'){
+            status = itemList;
+            console.log("STATUS IS: " + status);
+
+          }
+          else if(itemName=='project'){
             console.log("^^^^^^^^^^^^^^^^^^^^^INSIDE PROJECTS");
                 if(itemList==correctProjectKey){
                   console.log("ITEM LIST: " + itemList);
                   console.log("CORRECT PROJECT KEY: " + correctProjectKey);
                   console.log('WORKS!!!!!!!');
-                      productBacklog.push({
+                  console.log('User story is: ' + userStory);
+                  console.log('Item name is: ' + itemName);
+                  console.log("$$$ THIS STATUS IS: " + status);
+                  if(status=='productBacklog'){
+                      thisProductBacklog.push({
                           title: userStory,
-                          _key: itemName,
-                          
+                          _key: itemList,
+                          ac: AC,
+                          des: desc,
+                          est: estimate,
+                          us: userStory, 
+                          stat: status,  
                       });
+                }
+                else if(status=='sprintBacklog'){
+                  thisSprintBacklog.push({
+                          title: userStory,
+                          _key: itemList,
+                          ac: AC,
+                          des: desc,
+                          est: estimate,
+                          us: userStory, 
+                          stat: status,  
+                      });
+                }
                 }
           }
         });    
       });
+      thisProductBacklog.forEach((child) => {
+        console.log("Child key is: " + child.title);
+        console.log("Child val is: " + child._key);
+      });
       this.setState({
-          dataSource: this.state.dataSource.cloneWithRows(productBacklog)
+          dataSource: this.state.dataSource.cloneWithRows(thisProductBacklog),
+          sprintDataSource: this.state.sprintDataSource.cloneWithRows(thisSprintBacklog),
+          productBacklog: thisProductBacklog,
+          sprintBacklog: thisSprintBacklog,
     });
-  });
+    
+ 
+    console.log("DING DING DING");
+    this.state.productBacklog.forEach((child) => {
+        console.log("PB key is: " + child.title);
+        console.log("PB val is: " + child._key);
+      });
+    });
 }
 
 
@@ -119,7 +174,11 @@ export default class ScrumBoard extends Component {
       // if(!this.state.loaded){
       //   return this.renderProductBacklog();
       // }
-    return ( 
+      var textInfo = '';
+    this.state.productBacklog.forEach((child) => {
+        textInfo = child.title;
+      });    
+      return ( 
       <ScrollView style={styles.scroll}>
         <Container>
             <StatusBar title={this.state.projectName + " Scrum Board"} />
@@ -142,66 +201,114 @@ export default class ScrumBoard extends Component {
                        navigator={this.props.navigator}
                         onPress={this.renderProductBacklog.bind(this)} />
                 </Container>*/}
+                 {/*onPress={this.renderProductBacklog.bind(this)}*/}
 
-        <Panel title="Product Backlog" onPress={this.renderProductBacklog.bind(this)}>
+        {/*<Panel title="Product Backlog" dataSource={this.state.dataSource}>*/}
+          <Container>
+       <Label text={"Product Backlog"} />
+                <View style={{ flex: 1 }}>
           <ListView
           dataSource={this.state.dataSource}
-          renderRow={this.renderProductBacklog.bind(this)}
-
+          renderRow={this._renderItem.bind(this)}
           style={styles.listview}/>
-        </Panel>
-        <Panel title="Sprint Backlog">
+          
+          </View>
+          </Container>
+          <Container>
+       <Label text={"Sprint Backlog"} />
+    <View style={{ flex: 1 }}>
+       <ListView
+          dataSource={this.state.sprintDataSource}
+          renderRow={this._renderItem.bind(this)}
+          style={styles.listview}/>
+          </View>
+        </Container>
+        <Container>
+       <Label text={"To Do"} />
+        </Container>
+        <Container>
+       <Label text={"In Progress"} />
+        </Container>
+        <Container>
+       <Label text={"Done"} />
+        </Container>
+
+          {/*<Text onPress={() => this._renderItem(this)}>{textInfo}</Text>*/}
+        {/*</Panel>*/}
+        {/*<Panel title="Sprint Backlog">
           <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderSprintBacklog.bind(this)}
 
           style={styles.listview}/>
-        </Panel>
-        <Panel title="To Do">
+        </Panel>*/}
+        {/*<Panel title="To Do">
         <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderToDoTasks.bind(this)}
 
           style={styles.listview}/>
-        </Panel>
-        <Panel title="In Progress">
+        </Panel>*/}
+        {/*<Panel title="In Progress">
           <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderInProgressTasks.bind(this)}
           style={styles.listview}/>
-        </Panel>
-        <Panel title="Done">
+        </Panel>*/}
+        {/*<Panel title="Done">
           <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderDoneTasks.bind(this)}
 
           style={styles.listview}/>
-        </Panel>
+        </Panel>*/}
    
         
       </ScrollView>
     );
   }
+_renderItem(item) {
+      //var correctUserName = this.state.username;
+      //var correctProjectName = item.title;
+      //var correctProjectKey = item.projectKey;
+    
+    const onPress = () => {
+      var desc = ''
+      if(item.des!=false){
+        desc = item.des;
+      }
+      AlertIOS.alert(
+        'Description: ' + desc + '\n\n AC: ' + item.ac + '\n\n Size: ' + item.est ,
+        null,
+        [
+          {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+    };
 
-
-
-  renderSprintBacklog(item){
-  
+    return (
+      <ListItem item={item} onPress={onPress} />
+    );
   }
-  
-  renderToDoTasks(item){
-  
-  }
 
-  renderInProgressTasks(item){
-  
-  }
 
-  renderDoneTasks(item){
+  // renderSprintBacklog(item){
   
-  }
+  // }
+  
+  // renderToDoTasks(item){
+  
+  // }
+
+  // renderInProgressTasks(item){
+  
+  // }
+
+  // renderDoneTasks(item){
+  
+  // }
 }
-
+module.exports = ScrumBoard;
 AppRegistry.registerComponent('Panels', () => ScrumBoard);
 
 
