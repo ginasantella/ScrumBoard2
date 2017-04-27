@@ -24,11 +24,12 @@ import Label from '../components/Label';
 import Panel from '../components/Panel';
 import Home from './Home';
 import navigator from './Navigation';
-import ListItem from '../components/ListItem';
 import config from '../../config';
 import firebaseApp from '../../node_modules/firebase/';
 import firebase from 'firebase/app';
 import AddPBL from './AddPBL';
+import EditPBL from './EditPBL'
+import ListItem from '../components/ListItem';
 const StatusBar = require('../components/StatusBar');
 //var ds = new ListView.DataSource({ rowHasChanged: (row1, row2) => row1 !== row2 })
 
@@ -37,6 +38,7 @@ export default class ScrumBoard extends Component {
         super(props);
         this.state = {
               username: this.props.username,
+              role: this.props.role,
               projectName: this.props.projectName,
               projectKey: this.props.projectKey,
               productBacklog:[],
@@ -47,10 +49,11 @@ export default class ScrumBoard extends Component {
               sprintDataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
               }),
-              loaded: false,
-              
+              loaded: false
         };
         this.productBacklogRef = this.getRef().child('prodBacklogs');
+        this.projectsRef= this.getRef().child('projects');
+        this.usersRef= this.getRef().child('users');
     }
 
     getRef() {
@@ -61,7 +64,7 @@ export default class ScrumBoard extends Component {
     this.updateProductBacklog();
    }
 
-    updateProductBacklog(){
+   updateProductBacklog(){
     var correctProjectKey = this.state.projectKey;
     console.log("$%^&*() Project key is: " + correctProjectKey + " $%^&*()");
     this.productBacklogRef.on("value", (snapshot) => {
@@ -153,22 +156,203 @@ export default class ScrumBoard extends Component {
       });
     });
 }
-
-
-    toAddPL = () =>{
-      var correctProjectName=this.state.projectName;
+toAddPL = () =>{
+       var correctProjectName=this.state.projectName;
       var correctUserName=this.state.username;
-    var correctProjectKey = this.state.projectKey;
-    this.props.navigator.push({
-      title: 'Add New Project Item',
+      var correctRole = "";
+      var done = false;
+    var exists = false;
+    var once =false;
+    var second=false;
+     
+    var correctProjectKey = this.state.projectKey;
+
+
+    this.usersRef.on("value", (snapshot) => {
+        snapshot.forEach((child) => {
+            if(child.val().id == correctUserName){
+                    done = true; 
+       this.projectsRef.on("value", (snapshot) => {
+      //       //done = false;
+             snapshot.forEach((child) => {
+
+                var childKey = child.key;
+                            if(childKey==correctProjectKey){
+                                child.forEach(function(data)  {
+                                     var itemName = data.key;
+                                    if(itemName=='users'){
+                                      
+                                        data.forEach(function(data1){
+                                       var userID = data1.key;
+                                        
+                                          if(userID==correctUserName && once!=true){
+                                            //correctRole=[correctUserName]._role;
+                                            data1.forEach(function(data2){
+                                              correctKey=data2.key;
+                                              if(correctKey=="_role"){
+                                                correctRole=data2.val();
+                                              console.log("####################"+correctRole);
+                                              
+                                              }
+                                              
+                                            });
+                                             
+                                                     exists = true;
+                                             }
+                                        });
+                                         if(!exists && once!=true){
+                                            if(itemName=='users' && once!=true){
+                                            once=true;
+                                            correctRole=[correctUserName]._role;
+                                             console.log("####################2"+itemName);
+                                           }
+                                         }
+                                    }
+                                
+                                 });
+                            }
+            
+            });
+      
+        });
+            }
+        });
+    });
+      
+    
+     
+
+  if(correctRole == "Product Owner"){
+    this.props.navigator.push({
+      title: 'Add New Project Item',
      component: AddPBL,
       passProps:{
+          role: correctRole,
           username: correctUserName,
           projectName: correctProjectName,
           projectKey:correctProjectKey,
       }
-    });
-  }
+    });}
+ else{
+      AlertIOS.alert(
+                             'Error!',
+                             'Only the product owner can add to the product backlog!',
+                             [
+                             {text: 'Okay', onPress: () => this.props.navigator.push({
+                                     title: 'Scrum Board',
+                                     component: ScrumBoard,
+                                     passProps:{
+                                      role: correctRole,
+           username: correctUserName,
+           projectName: correctProjectName,
+           projectKey:correctProjectKey,}
+                                   
+                    }), style: 'cancel'},
+                        ]
+                             );
+ }
+  }
+
+  toEditPL = () =>{
+   var correctProjectName=this.state.projectName;
+      var correctUserName=this.state.username;
+      var correctRole = "";
+      var done = false;
+    var exists = false;
+    var once =false;
+    var second=false;
+     
+    var correctProjectKey = this.state.projectKey;
+
+
+    this.usersRef.on("value", (snapshot) => {
+        snapshot.forEach((child) => {
+            if(child.val().id == correctUserName){
+                    done = true; 
+       this.projectsRef.on("value", (snapshot) => {
+      //       //done = false;
+             snapshot.forEach((child) => {
+
+                var childKey = child.key;
+                            if(childKey==correctProjectKey){
+                                child.forEach(function(data)  {
+                                     var itemName = data.key;
+                                    if(itemName=='users'){
+                                      
+                                        data.forEach(function(data1){
+                                       var userID = data1.key;
+                                        
+                                          if(userID==correctUserName && once!=true){
+                                            //correctRole=[correctUserName]._role;
+                                            data1.forEach(function(data2){
+                                              correctKey=data2.key;
+                                              if(correctKey=="_role"){
+                                                correctRole=data2.val();
+                                              console.log("####################"+correctRole);
+                                              
+                                              }
+                                              
+                                            });
+                                             
+                                                     exists = true;
+                                             }
+                                        });
+                                         if(!exists && once!=true){
+                                            if(itemName=='users' && once!=true){
+                                            once=true;
+                                            correctRole=[correctUserName]._role;
+                                             console.log("####################2"+itemName);
+                                           }
+                                         }
+                                    }
+                                
+                                 });
+                            }
+            
+            });
+      
+        });
+            }
+        });
+    });
+      
+    
+     
+
+  if(correctRole == "Product Owner"){
+    this.props.navigator.push({
+      title: 'Edit Project Item',
+     component: EditPBL,
+      passProps:{
+          role: correctRole,
+          username: correctUserName,
+          projectName: correctProjectName,
+          projectKey:correctProjectKey,
+      }
+    });}
+ else{
+AlertIOS.alert(
+                             'Error!',
+                             'Only the product owner can edit the product backlog!',
+                             [
+                             {text: 'Okay', onPress: () => this.props.navigator.push({
+                                     title: 'Scrum Board',
+                                     component: ScrumBoard,
+                                     passProps:{
+                                      role: correctRole,
+           username: correctUserName,
+           projectName: correctProjectName,
+           projectKey:correctProjectKey,}
+                                   
+                    }), style: 'cancel'},
+                        ]
+                             );
+}
+
+  }
+
+
+   
 
     render() {
       // if(!this.state.loaded){
@@ -192,9 +376,14 @@ export default class ScrumBoard extends Component {
                        navigator={this.props.navigator}
                         onPress={this.toAddPL.bind(this)} />
                 </Container>
-           
-
-               {/*<Container>
+                 <Container>
+                    <Button 
+                        label="Edit New Project Item"
+                       styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
+                       navigator={this.props.navigator}
+                        onPress={this.toEditPL.bind(this)} />
+                </Container>
+                   {/*<Container>
                     <Button 
                         label="RENDER"
                        styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
@@ -211,7 +400,6 @@ export default class ScrumBoard extends Component {
           dataSource={this.state.dataSource}
           renderRow={this._renderItem.bind(this)}
           style={styles.listview}/>
-          
           </View>
           </Container>
           <Container>
@@ -219,10 +407,9 @@ export default class ScrumBoard extends Component {
     <View style={{ flex: 1 }}>
        <ListView
           dataSource={this.state.sprintDataSource}
-          renderRow={this._renderItem.bind(this)}
-          style={styles.listview}/>
+          renderRow={this._renderItem.bind(this)}/>
           </View>
-        </Container>
+          </Container>
         <Container>
        <Label text={"To Do"} />
         </Container>
@@ -232,21 +419,23 @@ export default class ScrumBoard extends Component {
         <Container>
        <Label text={"Done"} />
         </Container>
-
           {/*<Text onPress={() => this._renderItem(this)}>{textInfo}</Text>*/}
         {/*</Panel>*/}
         {/*<Panel title="Sprint Backlog">
           <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderSprintBacklog.bind(this)}
-
+          enableEmptySections={true}
           style={styles.listview}/>
         </Panel>*/}
         {/*<Panel title="To Do">
         <ListView
+        </Panel>
+        <Panel title="To Do">
+                    <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderToDoTasks.bind(this)}
-
+          enableEmptySections={true}
           style={styles.listview}/>
         </Panel>*/}
         {/*<Panel title="In Progress">
@@ -259,12 +448,12 @@ export default class ScrumBoard extends Component {
           <ListView
           dataSource={this.state.dataSource}
           renderRow={this.renderDoneTasks.bind(this)}
-
+          enableEmptySections={true}
           style={styles.listview}/>
         </Panel>*/}
    
-        
-      </ScrollView>
+        </ScrollView>
+
     );
   }
 _renderItem(item) {
@@ -290,6 +479,7 @@ _renderItem(item) {
       <ListItem item={item} onPress={onPress} />
     );
   }
+
 
 
   // renderSprintBacklog(item){

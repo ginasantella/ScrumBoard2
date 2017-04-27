@@ -229,7 +229,8 @@ addUser(){
                                             if(itemName=='users' && once!=true){
                                             once=true;
                                                 data.ref.update( {
-                                                        [correctUserName]: correctRole,            
+                                                        [correctUserName]: {_role: correctRole,
+                                                        pending: true}            
                                                 });
                                                 //break;
                                             }
@@ -268,7 +269,7 @@ addUser(){
             var projectKey = this.state.projectKey;
             AlertIOS.alert(
                 'Error!',
-                'This user is already a part of this project',
+                'This user has already been been added to the project or has a pending invitation to the project.',
                     [
                         {text: 'Okay', onPress: (text) => this.props.navigator.push({
                         title: 'Add User',

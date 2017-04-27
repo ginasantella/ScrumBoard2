@@ -25,8 +25,8 @@ import StatusBar from '../components/StatusBar';
 import ListItem from '../components/ListItem';
 import AddUser from './AddUser';
 import NewProjectFunc from './NewProjectFunc';
-import Invitations from './Invitations';
 import ScrumBoard from './ScrumBoard';
+import Home from './Home';
 
 import Menu, {
     MenuContext,
@@ -36,7 +36,7 @@ import Menu, {
 } from 'react-native-menu';
 
 
-export default class Home extends Component{
+export default class Invitations extends Component{
 
 constructor(props) {
         super(props);
@@ -46,8 +46,8 @@ constructor(props) {
             message: 'Welcome ' + this.props.username + '!',
             projectName: '',
             projectKey: '',
-            firstMenuDisabled: false,
-            dropdownSelection: '-- Choose --',
+            description: '',
+            role: '',
             dataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
             }),
@@ -69,9 +69,14 @@ constructor(props) {
         var projects =[];
         snapshot.forEach((child) => { //each project
              var projectName = '';
+             var description = '';
+             var roleVar = '';
           child.forEach(function(data)  { //each attribute
               var itemName = data.key;
               var itemList = data.val();
+              if(itemName =='description'){
+                  description = itemList;
+              }
               if(itemName=='name'){
                   projectName=itemList;
               }
@@ -80,14 +85,18 @@ constructor(props) {
                       var userID = data1.key;
                     if(userID==correctUsername){
                         data1.forEach(function(data2){
+                            if(data2.key == '_role'){
+                                roleVar = data2.val();
+                            }
                             if(data2.key == 'pending'){
                                 var pendingVal = data2.val();
-                                if(pendingVal == false){
+                                if(pendingVal == true){
                                     projects.push({
+                                        personRole: roleVar,
                                         title: projectName,
                                         _key: data1.key,
                                         projectKey:child.key,
-                                        
+                                        desc: description,
                                     });
                                 }
                             }
@@ -103,22 +112,12 @@ constructor(props) {
     });
 
    }
-  toAddProject = () =>{
-    var correctUserName = this.state.username;
-    this.props.navigator.push({
-      title: 'Add Project',
-     component: NewProjectFunc,
-      passProps:{
-          username: correctUserName,
-      }
-    });
-  }
 
-  toInvitations = () =>{
+  toHome = () =>{
     var correctUserName = this.state.username;
     this.props.navigator.push({
-      title: 'Pending Scrum Board Invitations',
-     component: Invitations,
+      title: 'Home',
+     component: Home,
       passProps:{
           username: correctUserName,
       }
@@ -129,61 +128,122 @@ constructor(props) {
       return(
     <ScrollView style={styles.scroll}>
         <Container>
-            <StatusBar title={'Welcome ' + this.state.username} />
+            <View>
+                <View style={styles.statusbar}/>
+                <View style={styles.navbar}>
+                <Text style={styles.navbarTitle}>Pending Invitations</Text>
+            </View>
+      </View>
         </Container>
         <ListView
           dataSource={this.state.dataSource}
           renderRow={this._renderItem.bind(this)}
           enableEmptySections={true}
           style={styles.listview}/>
-
+          {this.state.dataSource.getRowCount() == 0 ?
+              <Text style = {styles.textLabel}>You have no pending inviations to scrum boards. </Text> : <Text></Text>
+          }
           <View style={styles.footer}>
                <Container>
                     <Button 
-                        label="Add Project"
+                        label="Return to Home"
                         styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
                         navigator={this.props.navigator}
-                        onPress={this.toAddProject.bind(this)} />
-                </Container>
-                 <Container>
-                    <Button 
-                        label="View Pending Invitations"
-                        styles={{button: styles.inviteButton, label: styles.buttonWhiteText}} 
-                        navigator={this.props.navigator}
-                        onPress={this.toInvitations.bind(this)} />
+                        onPress={this.toHome.bind(this)} />
                 </Container>
                 </View>
           </ScrollView>
       );
     }
+
+    acceptInvite(item){
+        var correctUsername = this.state.username;
+        var correctProjectName = this.state.projectName;
+        this.projectsRef.on("value", (snapshot) => {
+            snapshot.forEach((child) => { //each project
+                var projectName = '';
+            child.forEach(function(data)  { //each attribute
+                var itemName = data.key;
+                var itemList = data.val();
+                if(itemName=='name'){
+                    projectName=itemList;
+                }
+                if(itemName=='users'){
+                    data.forEach(function(data1){ //each user
+                        var userID = data1.key;
+                        if(userID==correctUsername){
+                            data1.forEach(function(data2){ //each attribute of user
+                                if(data2.key == 'pending'){
+                                    var pendingVal = data2.val();
+                                    if(pendingVal == true){
+                                        if(projectName == correctProjectName){
+                                            data1.ref.update( {
+                                                    [data2.key]: false    
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });    
+            });
+        });
+    }
+
+    rejectInvite(correctProjectKey){
+        var correctUsername = this.state.username;
+        var correctProjectName = this.state.projectName;
+        this.projectsRef.on("value", (snapshot) => {
+            snapshot.forEach((child) => { //each project
+                var projectName = '';
+            child.forEach(function(data)  { //each attribute
+                var itemName = data.key;
+                var itemList = data.val();
+                if(itemName=='name'){
+                    projectName=itemList;
+                }
+                if(itemName=='users'){
+                    data.forEach(function(data1){
+                        var userID = data1.key;
+                        if(userID==correctUsername){
+                            data1.forEach(function(data2){
+                                if(data2.key == 'pending'){
+                                    var pendingVal = data2.val();
+                                    if(pendingVal == true){
+                                        if([projectName] == correctProjectName){
+                                            data1.ref.remove();
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });    
+            });
+        });
+    }
+
     _renderItem(item) {
       var correctUserName = this.state.username;
-      var correctProjectName = item.title;
-      var correctProjectKey = item.projectKey;
     
     const onPress = () => {
+        this.state.projectName = item.title;
+        this.state.projectKey = item.projectKey;
+        this.state.description = item.desc;
+        this.state.role = item.personRole;
       AlertIOS.alert(
-        'Project Options',
+        'Invitation response to ' + item.title + '\n' + 
+        'Description: ' + this.state.description + '\n' +
+        'Assigned role: ' + this.state.role,
         null,
         [
-         {text: 'View Project Scrum Board', onPress: (text) => this.props.navigator.push({
-                      title: 'Scrum Board',
-            component: ScrumBoard,
-            passProps:{
-                username: correctUserName,
-                projectName: correctProjectName,
-                projectKey: correctProjectKey,
-            }
-    })},
-          {text: 'Add User', onPress: (text) => this.props.navigator.push({
-                  title: 'Add Project',
-                  component: AddUser,
-                  passProps:{
-                      username: correctUserName,
-                      projectName: correctProjectName,
-                      projectKey: correctProjectKey,
-                  }
-    })},
+         {text: 'Accept', onPress: this.acceptInvite.bind(this)},
+
+          {text: 'Reject', onPress: this.rejectInvite.bind(this)},
+
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
       );
@@ -194,7 +254,7 @@ constructor(props) {
     );
   }
   }
-module.exports = Home;
+module.exports = Invitations;
 
 //Styles 
 const styles = StyleSheet.create({
@@ -209,6 +269,33 @@ container: {
     backgroundColor: '#f2f2f2',
     flex: 1,
   },
+navbar: {
+    alignItems: 'center',
+    backgroundColor: '#663399',
+    borderColor: 'transparent',
+    borderWidth: 1,
+    justifyContent: 'center',
+    paddingBottom: 1,
+    paddingTop: 1,
+    height: 60,
+    flexDirection: 'row'
+  },
+  navbarTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontFamily: "Helvetica",
+    fontWeight: "700"
+  },
+  statusbar: {
+    height: 1,
+  },
+textLabel: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    fontFamily: 'Verdana',
+    marginBottom: 10,
+    color: '#000'
+},
 listview: {
     flex: 1,
   },
@@ -236,19 +323,6 @@ content: {
    flexDirection: 'column'                                 },
    contentText: {
    fontSize: 18
-   },
-dropdown: {
-   width: 300,
-   borderColor: '#999',
-   borderWidth: 1,
-   padding: 5
-   },
-dropdownOptions: {
-  marginTop: 30,
-  borderColor: '#ccc',
-  borderWidth: 2,
-  width: 300,
-  height: 200
 },
 scroll: {
     backgroundColor: '#E1D7D8',
@@ -267,14 +341,6 @@ buttonBlackText: {
     color: '#595856'
 },
 primaryButton: {
-    backgroundColor: '#4169E1',
-    borderColor: 'transparent',
-    borderWidth: 1,
-    paddingLeft: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
-},
-inviteButton: {
     backgroundColor: '#663399',
     borderColor: 'transparent',
     borderWidth: 1,
