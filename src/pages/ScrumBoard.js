@@ -30,6 +30,7 @@ import firebase from 'firebase/app';
 import AddPBL from './AddPBL';
 import EditPBL from './EditPBL'
 import ListItem from '../components/ListItem';
+import AddTask from './AddTask';
 const StatusBar = require('../components/StatusBar');
 //var ds = new ListView.DataSource({ rowHasChanged: (row1, row2) => row1 !== row2 })
 
@@ -351,7 +352,19 @@ AlertIOS.alert(
 
   }
 
+  toAddTask = () => {
+    var correctProjectName=this.state.projectName;
+    var correctUserName=this.state.username;
+    this.props.navigator.push({
+    title: 'Add Project Task Item',
+    component: AddTask,
+    passProps:{
+        username: correctUserName,
+        projectName: correctProjectName,
+    }
+    });
 
+  }
    
 
     render() {
@@ -382,6 +395,13 @@ AlertIOS.alert(
                        styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
                        navigator={this.props.navigator}
                         onPress={this.toEditPL.bind(this)} />
+                </Container>
+                <Container>
+                    <Button 
+                        label="Add a Project Task"
+                       styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
+                       navigator={this.props.navigator}
+                        onPress={this.toAddTask.bind(this)} />
                 </Container>
                    {/*<Container>
                     <Button 
