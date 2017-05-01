@@ -137,7 +137,7 @@ var users = [];
                 <RadioForm
                     radio_props={users}
                     initial={-1}
-                    onPress={(value) => {this.setState({value:value})}}/>
+                    onPress={(value) => {this.setState({tMemberAssigned:value})}}/>
             </Container>
             <View style={styles.footer}>
                 <Container>
@@ -171,29 +171,6 @@ var users = [];
         });
     }
 
-
-_renderItem(item) {
-      //var correctUserName = this.state.username;
-      //var correctProjectName = item.title;
-      //var correctProjectKey = item.projectKey;
-    
-    const onPress = () => {
-        var desc = item.user;
-      AlertIOS.alert(
-        'Description: ' + desc + '\n\n ',
-        null,
-        [
-          {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
-        ]
-      );
-    };
-
-    return (
-      <ListItem item={item} onPress={onPress} />
-    );
-  }
-
-
     toCreateTask(){
         var correctDescription = this.state.tDescription;
         var correctMemberAssigned = this.state.tMemberAssigned;
@@ -210,15 +187,19 @@ _renderItem(item) {
                     child.forEach(function(data){ //for each attribute
                         var itemName = data.key;
                         if(itemName == 'tasks'){
+                            once = false;
                             this.pblRef.push({
                                 _description: correctDescription, 
+                                status: 'ToDo',
                                 percentage: correctPercentage,
                                 assignedMember: correctMemberAssigned})
                         }
                         else{
+                            once = false;
                             this.pblRef.push({
                                 tasks: {
                                     _description: correctDescription, 
+                                    status: 'ToDo',
                                     percentage: correctPercentage,
                                     assignedMember: correctMemberAssigned}
                             });

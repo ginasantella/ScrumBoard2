@@ -352,21 +352,21 @@ AlertIOS.alert(
 
   }
 
-  toAddTask = () => {
-    var correctProjectName=this.state.projectName;
-    var correctUserName=this.state.username;
-    var correctProjectKey = this.state.projectKey;
-    this.props.navigator.push({
-    title: 'Add Project Task Item',
-    component: AddTask,
-    passProps:{
-        username: correctUserName,
-        projectName: correctProjectName,
-        projectKey: correctProjectKey,
-    }
-    });
+  // toAddTask = () => {
+  //   var correctProjectName=this.state.projectName;
+  //   var correctUserName=this.state.username;
+  //   var correctProjectKey = this.state.projectKey;
+  //   this.props.navigator.push({
+  //   title: 'Add Project Task Item',
+  //   component: AddTask,
+  //   passProps:{
+  //       username: correctUserName,
+  //       projectName: correctProjectName,
+  //       projectKey: correctProjectKey,
+  //   }
+  //   });
 
-  }
+  // }
    
 
     render() {
@@ -398,13 +398,13 @@ AlertIOS.alert(
                        navigator={this.props.navigator}
                         onPress={this.toEditPL.bind(this)} />
                 </Container>
-                <Container>
+                {/*<Container>
                     <Button 
                         label="Add a Project Task"
                        styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
                        navigator={this.props.navigator}
                         onPress={this.toAddTask.bind(this)} />
-                </Container>
+                </Container>*/}
                    {/*<Container>
                     <Button 
                         label="RENDER"
@@ -429,7 +429,7 @@ AlertIOS.alert(
     <View style={{ flex: 1 }}>
        <ListView
           dataSource={this.state.sprintDataSource}
-          renderRow={this._renderItem.bind(this)}/>
+          renderRow={this._renderSprintItem.bind(this)}/>
           </View>
           </Container>
         <Container>
@@ -482,7 +482,7 @@ _renderItem(item) {
       //var correctUserName = this.state.username;
       //var correctProjectName = item.title;
       //var correctProjectKey = item.projectKey;
-    
+
     const onPress = () => {
       var desc = ''
       if(item.des!=false){
@@ -502,6 +502,38 @@ _renderItem(item) {
     );
   }
 
+_renderSprintItem(item) {
+    var correctProjectName=this.state.projectName;
+    var correctUserName=this.state.username;
+    var correctProjectKey = this.state.projectKey;
+
+    const onPress = () => {
+      var desc = ''
+      if(item.des!=false){
+        desc = item.des;
+      }
+      AlertIOS.alert(
+        'Description: ' + desc + '\n\n AC: ' + item.ac + '\n\n Size: ' + item.est ,
+        null,
+        [
+         {text: 'Add a Task', onPress: (text) => this.props.navigator.push({
+          title: 'Add a Task',
+          component: AddTask,
+          passProps:{
+              username: correctUserName,
+              projectName: correctProjectName,
+              projectKey: correctProjectKey,
+          }
+          })},
+          {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+    };
+
+    return (
+      <ListItem item={item} onPress={onPress} />
+    );
+  }
 
 
   // renderSprintBacklog(item){
