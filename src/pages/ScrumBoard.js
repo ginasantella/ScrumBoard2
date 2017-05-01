@@ -355,12 +355,14 @@ AlertIOS.alert(
   toAddTask = () => {
     var correctProjectName=this.state.projectName;
     var correctUserName=this.state.username;
+    var correctProjectKey = this.state.projectKey;
     this.props.navigator.push({
     title: 'Add Project Task Item',
     component: AddTask,
     passProps:{
         username: correctUserName,
         projectName: correctProjectName,
+        projectKey: correctProjectKey,
     }
     });
 
