@@ -31,27 +31,7 @@ import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-
 
 const StatusBar = require('../components/StatusBar');
 
-var radio_props = [
-
-  {label: 'Dev Team', value: 0 },
-  {label: 'Product Owner', value: 1 }
-];
-
-const mockData = [
-    {
-        label: 'label1',
-        value: 'fi'
-    },
-    {
-        label: 'label2',
-        value: 'se'
-    },
-    {
-        label: 'label3',
-        value: 'th'
-    }
-];
-     var users = []; 
+var users = []; 
 
  export default class AddTask extends Component {
 
@@ -68,11 +48,6 @@ const mockData = [
                 dataSource: new ListView.DataSource({
                     rowHasChanged: (row1, row2) => row1 !== row2,
                 }),
-                getInitialState() {
-                    return {
-                        userArray: ['a', 'b', 'c', 'd', 'e'],
-                    }
-                }
             };
              
             this.pblRef = this.getRef().child('prodBacklogs');
@@ -82,8 +57,6 @@ const mockData = [
         getRef() {
             return firebaseApp.database().ref();
         }
-        
-
 
     componentDidMount() {
          this.setState({
@@ -103,28 +76,24 @@ const mockData = [
                    if(itemName=='users'){
                         data.forEach(function(data2) {
                             var username = data2.key;
+                            var role = '';
+                            var pendingStatus = '';
                             data2.forEach(function(data3) {
-                                var role = '';
-                                var pendingStatus = '';
-                                if(data3.key == "_role"){
-                                    role = data3.val();
+                                var attributeName = data3.key;
+                                var attributeValue = data3.val();
+                                if(attributeName == "_role"){
+                                    role = attributeValue;
                                 }
-                                if(data3.key == 'pending'){
-                                    pendingStatus = data3.val();
+                                if(attributeName == 'pending'){
+                                    pendingStatus = attributeValue;
                                 }
-                                if(pendingStatus == false){
-                                    if(role == 'Dev Team'){
-                                 console.log("####PENDING STATUS: " + pendingStatus);
-                                    console.log("**************USERNAME: " + username);
-                                    users.push({
-                                        label: username,
-                                        value: username,
-                                    });
-                                    }
-   
-                                } 
                             });
-
+                            if(pendingStatus == false && role == 'Dev Team'){
+                                users.push({
+                                    label: username,
+                                    value: username,
+                                });
+                            }
                         });
                     }
                });
@@ -167,7 +136,7 @@ const mockData = [
              <Label text="Member Assigned to Task" />
                 <RadioForm
                     radio_props={users}
-                    initial={0}
+                    initial={-1}
                     onPress={(value) => {this.setState({value:value})}}/>
             </Container>
             <View style={styles.footer}>
