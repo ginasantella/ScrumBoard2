@@ -112,7 +112,6 @@ const mockData = [
                                 if(data3.key == 'pending'){
                                     pendingStatus = data3.val();
                                 }
-                                
                                 if(pendingStatus == false){
                                     if(role == 'Dev Team'){
                                  console.log("####PENDING STATUS: " + pendingStatus);
