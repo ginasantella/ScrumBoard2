@@ -3,11 +3,16 @@ import React, { Component, PropTypes } from 'react';
 import {
   StyleSheet,
   Text,
+  ListView,
   View,
   TextInput,
   ScrollView,
+  AppRegistry,
   AlertIOS,
   NavigatorIOS,
+  Image, 
+  TouchableHighlight, 
+  Animated,
 } from 'react-native';
  
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -15,6 +20,7 @@ import Container from '../components/Container';
 import Button from '../components/Button';
 import Label from '../components/Label';
 import Home from './Home';
+import ListItem from '../components/ListItem';
 import ScrumBoard from './ScrumBoard';
 import navigator from './Navigation';
 import config from '../../config';
@@ -26,11 +32,29 @@ import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-
 const StatusBar = require('../components/StatusBar');
 
 var radio_props = [
+
   {label: 'Dev Team', value: 0 },
   {label: 'Product Owner', value: 1 }
 ];
 
+const mockData = [
+    {
+        label: 'label1',
+        value: 'fi'
+    },
+    {
+        label: 'label2',
+        value: 'se'
+    },
+    {
+        label: 'label3',
+        value: 'th'
+    }
+];
+     var users = []; 
+
  export default class AddTask extends Component {
+
         constructor(props) {
             super(props);
 
@@ -41,9 +65,15 @@ var radio_props = [
                 tDescription: "",
                 tMemberAssigned: "",
                 tPercentage: "",
-               
+                dataSource: new ListView.DataSource({
+                    rowHasChanged: (row1, row2) => row1 !== row2,
+                }),
+                getInitialState() {
+                    return {
+                        userArray: ['a', 'b', 'c', 'd', 'e'],
+                    }
+                }
             };
-          //  console.log("****first"+this.state.projectName);
              
             this.pblRef = this.getRef().child('prodBacklogs');
             this.projectsRef = this.getRef().child('projects');
@@ -52,6 +82,61 @@ var radio_props = [
         getRef() {
             return firebaseApp.database().ref();
         }
+        
+
+
+    componentDidMount() {
+         this.setState({
+          userArray: this.userList()
+         }) 
+
+   }
+
+   userList(){
+       var correctProjKey = this.state.projectKey;
+       user = [];
+       this.projectsRef.on("value", (snapshot) => {
+           snapshot.forEach((child) => { //each project
+               if(child.key == correctProjKey){
+               child.forEach(function(data)  { //each attribute
+                   var itemName = data.key;
+                   if(itemName=='users'){
+                        data.forEach(function(data2) {
+                            var username = data2.key;
+                            data2.forEach(function(data3) {
+                                var role = '';
+                                var pendingStatus = '';
+                                if(data3.key == "_role"){
+                                    role = data3.val();
+                                }
+                                if(data3.key == 'pending'){
+                                    pendingStatus = data3.val();
+                                }
+                                
+                                if(pendingStatus == false){
+                                    if(role == 'Dev Team'){
+                                 console.log("####PENDING STATUS: " + pendingStatus);
+                                    console.log("**************USERNAME: " + username);
+                                    users.push({
+                                        label: username,
+                                        value: username,
+                                    });
+                                    }
+   
+                                } 
+                            });
+
+                        });
+                    }
+               });
+               }
+
+           });
+       });
+        this.setState({
+          dataSource: this.state.dataSource.cloneWithRows(users)
+        });
+   }
 
     render() {
         return (
@@ -81,10 +166,10 @@ var radio_props = [
             </Container>
             <Container>
              <Label text="Member Assigned to Task" />
-                       <RadioForm
-                            radio_props={radio_props}
-                            initial={0}
-                            onPress={(value) => {this.setState({value:value})}}/>
+                <RadioForm
+                    radio_props={users}
+                    initial={0}
+                    onPress={(value) => {this.setState({value:value})}}/>
             </Container>
             <View style={styles.footer}>
                 <Container>
@@ -118,111 +203,106 @@ var radio_props = [
         });
     }
 
+
+_renderItem(item) {
+      //var correctUserName = this.state.username;
+      //var correctProjectName = item.title;
+      //var correctProjectKey = item.projectKey;
+    
+    const onPress = () => {
+        var desc = item.user;
+      AlertIOS.alert(
+        'Description: ' + desc + '\n\n ',
+        null,
+        [
+          {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+    };
+
+    return (
+      <ListItem item={item} onPress={onPress} />
+    );
+  }
+
+
     toCreateTask(){
-      
-        var tDescription = this.state.tDescription;
-        var tMemberAssigned = this.state.tMemberAssigned;
-        var tPercentage = this.state.tPercentage;
+        var correctDescription = this.state.tDescription;
+        var correctMemberAssigned = this.state.tMemberAssigned;
+        var correctPercentage = this.state.tPercentage;
+        var correctProjectName = this.state.projectName;
 
         var done=false;
         var once = false;
      
         if(once != true){
-
         this.pblRef.on("value", (snapshot) => {
-
-            snapshot.forEach((child) => {
-                if(pbiDescript!=""&&child.val().description == pbiDescript && once!=true){
-                    
-                    var correctProjKey =  this.state.projectKey;
-                    done=true;
-                    once=true;
-                    AlertIOS.alert(
-                           'Error!',
-                            'User story already exists!',
-                           [
-                            {text: 'Okay', onPress: () => this.props.navigator.push({
-                                    title: 'New Project Item',
-                                    component: AddPBL,
-                                   passProps:{
-                                    projectKey: correctProjKey,
-                                }
-
-                   }), style: 'cancel'},
-                        ]
-                           );
-                           return;
-                }
-                else if(pbiDescript!="false" && pbiDescript=="" && tDescription=="" && once!=true){
-                        var correctProjKey = this.state.projectKey;
-                      
-                        done = true;  
-                        once = true; 
-                        AlertIOS.alert(
-                            'Error!',
-                            'All required fields must be filled!',
-                            [
-                            {text: 'Okay', onPress: () => this.props.navigator.push({
-                                    title: 'New Project Item',
-                                    component: AddPBL,
-                                    passProps:{
-                                    projectKey: correctProjKey,
-                                }
-                                   
-                   }), style: 'cancel'},
-                        ]
-                            );
+            snapshot.forEach((child) => { //for each pbl item
+                if(child.val() == correctProjectName){
+                    child.forEach(function(data){ //for each attribute
+                        var itemName = data.key;
+                        if(itemName == 'tasks'){
+                            this.pblRef.push({
+                                _description: correctDescription, 
+                                percentage: correctPercentage,
+                                assignedMember: correctMemberAssigned})
                         }
-                    
-    
-                        else{}
-
+                        else{
+                            this.pblRef.push({
+                                tasks: {
+                                    _description: correctDescription, 
+                                    percentage: correctPercentage,
+                                    assignedMember: correctMemberAssigned}
+                            });
+                        }
+                    });
+                }
         });
           
- if(done == false && once!=true){
-     var currentStatus = "productBacklog";
-               var correctProjectName = this.state.projectName;
-      var correctUserName = this.state.username;
-    var correctProjKey = this.state.projectKey;
-      once=true;
-      var second=false;
-       
- var size = 0;
-         this.projectsRef.on("value", (snapshot) => {
-               snapshot.forEach((child) => {
-             if(child.key==correctProjKey ){
-            size=size+1;
-               
-             }});
+        if(done == false && once!=true){
+            var currentStatus = "productBacklog";
+                    var correctProjectName = this.state.projectName;
+            var correctUserName = this.state.username;
+            var correctProjKey = this.state.projectKey;
+            once=true;
+            var second=false;
+            
+        var size = 0;
+                this.projectsRef.on("value", (snapshot) => {
+                    snapshot.forEach((child) => {
+                    if(child.key==correctProjKey ){
+                    size=size+1;
+                    
+                    }});
 
-        });
-             this.pblRef.push( {acc : tMemberAssigned ,
-                       _userStory: tDescription,
-                        description: pbiDescript,
-                        estimate: tPercentage,
-                       project: correctProjKey,
-                       location: currentStatus,
-                       priority: size,
-            })
-             AlertIOS.alert(
-                        'Success!',
-                        'Click View to Updated Scrum Board',
-                        [
-                            {text: 'Okay', onPress: () => this.props.navigator.push({
-                                    title: 'Scrum Board',
-                                    component: ScrumBoard,
-                                   passProps:{
-              username: correctUserName,
-              projectKey: correctProjKey,
-              projectName: correctProjectName,
-            },                 
-                   }), style: 'cancel'},
-                        ]
-                        );                   
-            }
+                });
+                    this.pblRef.push( {acc : tMemberAssigned ,
+                            _userStory: tDescription,
+                                description: pbiDescript,
+                                estimate: tPercentage,
+                            project: correctProjKey,
+                            location: currentStatus,
+                            priority: size,
+                    })
+                    AlertIOS.alert(
+                                'Success!',
+                                'Click View to Updated Scrum Board',
+                                [
+                                    {text: 'Okay', onPress: () => this.props.navigator.push({
+                                            title: 'Scrum Board',
+                                            component: ScrumBoard,
+                                        passProps:{
+                    username: correctUserName,
+                    projectKey: correctProjKey,
+                    projectName: correctProjectName,
+                    },                 
+                        }), style: 'cancel'},
+                                ]
+                                );                   
+                    }
 
-            });
-        }   
+                    });
+                }   
 
     }
 //end of class
