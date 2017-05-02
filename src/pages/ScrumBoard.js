@@ -126,8 +126,9 @@ export default class ScrumBoard extends Component {
                   console.log('Item name is: ' + itemName);
                   console.log("$$$ THIS STATUS IS: " + status);
                   if(status=='productBacklog'){
-                      thisProductBacklog.push({
-                          title: userStory,
+                    if(userStory == ""){
+                          thisProductBacklog.push({
+                          title: desc,
                           _key: itemList,
                           ac: AC,
                           des: desc,
@@ -135,18 +136,44 @@ export default class ScrumBoard extends Component {
                           us: userStory, 
                           stat: status, 
                       });
+                    }
+                    else{
+                    thisProductBacklog.push({
+                            title: userStory,
+                            _key: itemList,
+                            ac: AC,
+                            des: desc,
+                            est: estimate,
+                            us: userStory, 
+                            stat: status, 
+                        });
+                    }
                 }
                 else if(status=='sprintBacklog'){
-                  thisSprintBacklog.push({
-                          title: userStory,
-                          _key: itemList,
-                          ac: AC,
-                          des: desc,
-                          est: estimate,
-                          us: userStory, 
-                          stat: status,
-                          userStoryKey: userStoryKeyValue,   
+                  if(userStory == ""){
+                    thisSprintBacklog.push({
+                            title: desc,
+                            _key: itemList,
+                            ac: AC,
+                            des: desc,
+                            est: estimate,
+                            us: userStory, 
+                            stat: status,
+                            userStoryKey: userStoryKeyValue,   
                       });
+                  }
+                  else{
+                    thisSprintBacklog.push({
+                            title: userStory,
+                            _key: itemList,
+                            ac: AC,
+                            des: desc,
+                            est: estimate,
+                            us: userStory, 
+                            stat: status,
+                            userStoryKey: userStoryKeyValue,   
+                      });
+                  }
                 }
                 }
           }
