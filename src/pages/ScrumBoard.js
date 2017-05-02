@@ -84,7 +84,6 @@ export default class ScrumBoard extends Component {
       var thisToDoTasks = [];
       snapshot.forEach((child) => { //each product backlog item
       var childVal = child;
-
       var AC = '';
       var desc = '';
       var estimate = '';
@@ -92,13 +91,6 @@ export default class ScrumBoard extends Component {
       var status = '';
       var projectValue ='';
       var userStoryKeyValue = child.key;
-
-      AC = '';
-      desc = '';
-      estimate = '';
-      userStory = '';
-      status = '';
-
       child.forEach(function(data)  { //each attribute
           var itemName = data.key;
           console.log("$$$ Key is: " + itemName + " $$$");
