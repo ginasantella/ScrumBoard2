@@ -185,7 +185,6 @@ export default class ScrumBoard extends Component {
             var description = '';
             data.forEach(function(data2)  {
               var taskKey = data.key;
-              console.log("^^^^^^^^^^INSIDE TASKS");
 
               data2.forEach(function(data3){
                 var taskName = data3.key;
@@ -207,8 +206,9 @@ export default class ScrumBoard extends Component {
                   console.log("^^^^^^^^^^^^^^INSIDE TO DO LOOP");
                   console.log("******Desc: " + description);
                   console.log("********Member assigned: " + assignedMember);
+                  var newDesc = "1. " + description;
                   thisToDoTasks.push({
-                    title: description,
+                    title: newDesc,
                     key: taskKey,
                     percent: percentage,
                     desc: description,
@@ -224,10 +224,25 @@ export default class ScrumBoard extends Component {
           }
         });    
       });
-      thisProductBacklog.forEach((child) => {
-        console.log("Child key is: " + child.title);
-        console.log("Child val is: " + child._key);
-      });
+      var newestPBL = [];
+            for(i = (thisProductBacklog.length)-1; i>=0; i--){
+            thisProductBacklog.forEach((child) => {
+              // console.log("Child key is: " + child.title);
+              // console.log("Child val is: " + child._key);
+              if(child.priority==i){
+                newestPBL.push({
+                  title: child.title,
+                  _key: child._key,
+                  ac: child.ac,
+                  des: child.des,
+                  est: child.est,
+                  us: child.us,
+                  stat: child.stat,
+                  priority: child.priority,
+              });
+              }
+            });
+      }
       this.setState({
           dataSource: this.state.dataSource.cloneWithRows(thisProductBacklog),
           sprintDataSource: this.state.sprintDataSource.cloneWithRows(thisSprintBacklog),
@@ -606,9 +621,9 @@ _renderItem(item) {
         'Description: ' + desc + '\n\n AC: ' + item.ac + '\n\n Size: ' + item.est ,
         null,
         [
-          {text: 'Edit Product Backlog', onPress: this.toEditPL}
-                      ,
-        
+          {text: 'Move Item Up', onPress: (text) => this.moveUp(item)},
+          {text: 'Move Item Down', onPress: (text) => this.moveDown(item)},
+          {text: 'Edit Product Backlog', onPress: this.toEditPL},
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
       );
@@ -617,6 +632,226 @@ _renderItem(item) {
     return (
       <ListItem item={item} onPress={onPress} />
     );
+  }
+
+  moveDown(item){
+    //check if in last position or only item
+    var productBacklog = this.state.productBacklog;
+    var currentPriority = item.priority;
+    var targetPriority = ((currentPriority)-1);
+    console.log("currentPriority is: " + currentPriority);
+    console.log("targetPriority is: " + targetPriority);
+    var targetUS = item.us;
+    var targetAC = item.ac;
+    console.log("In Move Down Function");
+    console.log("PBL size is: " + productBacklog.length);
+    console.log("Item priority is: " + currentPriority);
+    if(productBacklog.length==1){
+      //only item
+      AlertIOS.alert(
+        'There is only one item',
+        null,
+        [
+          {text: 'Okay', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+    }
+    else if(item.priority==0){
+      //last position
+      console.log("MOVE DOWN, ALREADY IN LAST POSITION");
+      AlertIOS.alert(
+        'Item is already in last position',
+        null,
+        [
+          {text: 'Okay', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+    }
+    else{
+      //move item
+      //find item with priority-1
+      //set its priority to plus one
+      //set this priority to minus one
+      var correctProjectKey = this.state.projectKey;
+      var first = false;
+      var second = false;
+      var third = false;
+      this.productBacklogRef.on("value", (snapshot) => {
+      var done = false;
+      snapshot.forEach((child) => { //each product backlog item
+      var thisPriority='';
+      var proj = '';
+      var loc = '';
+      child.forEach(function(data)  { //each attribute
+          var itemName = data.key;
+          var itemList = data.val();
+          if(itemName=='key'){
+            proj = itemList;
+          }
+          else if(itemName=='location'){
+            loc = itemList;
+          }
+          else if(itemName=='priority'){
+            thisPriority = itemList;
+            if(proj==correctProjectKey && loc=='productBacklog'){
+              //items are a match.
+              if(thisPriority==currentPriority){
+              console.log("THIS: " + thisPriority);
+              console.log("TARGET: " + targetPriority);
+              console.log("CURRENT: " + currentPriority);
+              if(!first){
+                console.log("First updated");
+                    first=true;
+                    // thisPriority='temp';
+                    child.ref.update({
+                       priority:'temp',
+                    });
+              }
+              }
+              else if(thisPriority==targetPriority){
+                console.log("THIS: " + thisPriority);
+                console.log("TARGET: " + targetPriority);
+                console.log("^^^^^^^^^^^^^^^CURRENT PRIORITY: " + currentPriority);
+                if(!second){
+                   console.log("Second updated");
+                    second=true;
+                    // thisPriority=(currentPriority);
+ 
+                    child.ref.update({
+                       priority:currentPriority,
+                    });
+                }
+              }
+             else if(thisPriority=='temp'){
+              console.log("THIS: " + thisPriority);
+              console.log("TARGET: " + targetPriority);
+              console.log("CURRENT: " + currentPriority);
+              if(!third){
+                console.log("Third updated");
+                    third=true;
+                    // thisPriority=targetPriority;
+                    child.ref.update({
+                       priority:targetPriority,
+                    });
+              }
+                   
+             }    
+            }
+          }
+            });
+          });
+      });
+      }
+  }
+ 
+  moveUp(item){
+    //check if in last position or only item
+    var productBacklog = this.state.productBacklog;
+    var currentPriority = item.priority;
+    var targetPriority = ((currentPriority)+1);
+    console.log("currentPriority is: " + currentPriority);
+    console.log("targetPriority is: " + targetPriority);
+    var targetUS = item.us;
+    var targetAC = item.ac;
+    console.log("In Move Up Function");
+    console.log("PBL size is: " + productBacklog.length);
+    console.log("Item priority is: " + currentPriority);
+    if(productBacklog.length==1){
+      //only item
+      AlertIOS.alert(
+        'There is only one item',
+        null,
+        [
+          {text: 'Okay', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+    }
+    else if(item.priority==((productBacklog.length)-1)){
+      //first position
+      console.log("MOVE UP, ALREADY IN FIRST POSITION");
+      AlertIOS.alert(
+        'Item is already in first position',
+        null,
+        [
+          {text: 'Okay', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+    }
+    else{
+      //move item
+      //find item with priority+1
+      //set its priority to minus one
+      //set this priority to plus one
+      var correctProjectKey = this.state.projectKey;
+      var first = false;
+      var second = false;
+      var third = false;
+      this.productBacklogRef.on("value", (snapshot) => {
+      var done = false;
+      snapshot.forEach((child) => { //each product backlog item
+      var thisPriority='';
+      var proj = '';
+      var loc = '';
+      child.forEach(function(data)  { //each attribute
+          var itemName = data.key;
+          var itemList = data.val();
+          if(itemName=='key'){
+            proj = itemList;
+          }
+          else if(itemName=='location'){
+            loc = itemList;
+          }
+          else if(itemName=='priority'){
+            thisPriority = itemList;
+            if(proj==correctProjectKey && loc=='productBacklog'){
+              //items are a match.
+             
+              if(thisPriority==currentPriority){
+              console.log("THIS: " + thisPriority);
+              console.log("TARGET: " + targetPriority);
+              console.log("CURRENT: " + currentPriority);
+              if(!first){
+                console.log("First updated");
+                    first=true;
+                    // thisPriority='temp';
+                    child.ref.update({
+                       priority:'temp',
+                    });
+              }
+              }
+              else if(thisPriority==targetPriority){
+                console.log("THIS: " + thisPriority);
+                console.log("TARGET: " + targetPriority);
+                console.log("^^^^^^^^^^^^^^^CURRENT PRIORITY: " + currentPriority);
+                if(first && !second){
+                   console.log("Second updated");
+                    second=true;
+                    // thisPriority=(currentPriority);
+                    child.ref.update({
+                       priority:currentPriority,
+                    });
+                }
+              }
+             else if(thisPriority=='temp'){
+              console.log("THIS: " + thisPriority);
+              console.log("TARGET: " + targetPriority);
+              console.log("CURRENT: " + currentPriority);
+              if(first && second && !third){
+                console.log("Third updated");
+                    third=true;
+                    // thisPriority=targetPriority;
+                    child.ref.update({
+                       priority:targetPriority,
+                    });
+              }
+                    
+             }    
+            }
+          }
+            });
+          });
+      });
+      }
   }
 
 _renderSprintItem(item) {
