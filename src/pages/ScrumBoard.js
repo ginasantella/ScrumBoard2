@@ -15,7 +15,7 @@ import {
   Animated,
 } from 'react-native';
 
-import Accordion from 'react-native-accordion';
+//import Accordion from 'react-native-accordion';
  
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Container from '../components/Container';
@@ -33,6 +33,11 @@ import ListItem from '../components/ListItem';
 import AddTask from './AddTask';
 const StatusBar = require('../components/StatusBar');
 //var ds = new ListView.DataSource({ rowHasChanged: (row1, row2) => row1 !== row2 })
+ var AC;
+ var desc;
+ var estimate;
+ var userStory;
+ var status;
 
 export default class ScrumBoard extends Component {
     constructor(props) {
@@ -59,6 +64,7 @@ export default class ScrumBoard extends Component {
         this.productBacklogRef = this.getRef().child('prodBacklogs');
         this.projectsRef= this.getRef().child('projects');
         this.usersRef= this.getRef().child('users');
+       
     }
 
     getRef() {
@@ -78,6 +84,7 @@ export default class ScrumBoard extends Component {
       var thisToDoTasks = [];
       snapshot.forEach((child) => { //each product backlog item
       var childVal = child;
+
       var AC = '';
       var desc = '';
       var estimate = '';
@@ -85,6 +92,13 @@ export default class ScrumBoard extends Component {
       var status = '';
       var projectValue ='';
       var userStoryKeyValue = child.key;
+
+      AC = '';
+      desc = '';
+      estimate = '';
+      userStory = '';
+      status = '';
+
       child.forEach(function(data)  { //each attribute
           var itemName = data.key;
           console.log("$$$ Key is: " + itemName + " $$$");
@@ -307,6 +321,7 @@ toAddPL = () =>{
   }
 
   toEditPL = () =>{
+    console.log("???????????????????METHOOOOD");
    var correctProjectName=this.state.projectName;
       var correctUserName=this.state.username;
       var correctRole = "";
@@ -373,6 +388,9 @@ toAddPL = () =>{
      
 
   if(correctRole == "Product Owner"){
+    var currentPriority;
+     
+
     this.props.navigator.push({
       title: 'Edit Project Item',
      component: EditPBL,
@@ -381,6 +399,13 @@ toAddPL = () =>{
           username: correctUserName,
           projectName: correctProjectName,
           projectKey:correctProjectKey,
+          ac: AC,
+          description: desc,
+          estimate: estimate,
+          location: status,
+          userStory: userStory,
+          priority: currentPriority,
+         
       }
     });}
  else{
@@ -404,21 +429,21 @@ AlertIOS.alert(
 
   }
 
-  // toAddTask = () => {
-  //   var correctProjectName=this.state.projectName;
-  //   var correctUserName=this.state.username;
-  //   var correctProjectKey = this.state.projectKey;
-  //   this.props.navigator.push({
-  //   title: 'Add Project Task Item',
-  //   component: AddTask,
-  //   passProps:{
-  //       username: correctUserName,
-  //       projectName: correctProjectName,
-  //       projectKey: correctProjectKey,
-  //   }
-  //   });
+  toAddTask = () => {
+    var correctProjectName=this.state.projectName;
+    var correctUserName=this.state.username;
+    var correctProjectKey = this.state.projectKey;
+    this.props.navigator.push({
+    title: 'Add Project Task Item',
+    component: AddTask,
+    passProps:{
+        username: correctUserName,
+        projectName: correctProjectName,
+        projectKey: correctProjectKey,
+    }
+    });
 
-  // }
+  }
    
 
     render() {
@@ -443,20 +468,14 @@ AlertIOS.alert(
                        navigator={this.props.navigator}
                         onPress={this.toAddPL.bind(this)} />
                 </Container>
-                 <Container>
-                    <Button 
-                        label="Edit New Project Item"
-                       styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
-                       navigator={this.props.navigator}
-                        onPress={this.toEditPL.bind(this)} />
-                </Container>
-                {/*<Container>
+                 
+                <Container>
                     <Button 
                         label="Add a Project Task"
                        styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
                        navigator={this.props.navigator}
                         onPress={this.toAddTask.bind(this)} />
-                </Container>*/}
+                </Container>
                    {/*<Container>
                     <Button 
                         label="RENDER"
@@ -544,7 +563,7 @@ _renderItem(item) {
       //var correctUserName = this.state.username;
       //var correctProjectName = item.title;
       //var correctProjectKey = item.projectKey;
-
+    this.toEditPL=this.toEditPL.bind(this);
     const onPress = () => {
       var desc = ''
       if(item.des!=false){
@@ -554,6 +573,9 @@ _renderItem(item) {
         'Description: ' + desc + '\n\n AC: ' + item.ac + '\n\n Size: ' + item.est ,
         null,
         [
+          {text: 'Edit Product Backlog', onPress: this.toEditPL}
+                      ,
+        
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
       );
