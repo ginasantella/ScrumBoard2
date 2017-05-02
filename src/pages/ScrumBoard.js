@@ -463,14 +463,6 @@ AlertIOS.alert(
                        navigator={this.props.navigator}
                         onPress={this.toAddPL.bind(this)} />
                 </Container>
-                 
-                <Container>
-                    <Button 
-                        label="Add a Project Task"
-                       styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
-                       navigator={this.props.navigator}
-                        onPress={this.toAddTask.bind(this)} />
-                </Container>
                    {/*<Container>
                     <Button 
                         label="RENDER"
