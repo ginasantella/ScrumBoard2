@@ -151,6 +151,7 @@ var currentPercentage = 0;
     this.setState({tPercentage: newText})
 }
 
+
     render() {
         return (
             <ScrollView style={styles.scroll}>
