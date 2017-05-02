@@ -32,9 +32,11 @@ import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-
 const StatusBar = require('../components/StatusBar');
 
 var users = []; 
+var userStory = "";
+var currentPercentage = 0;
 
  export default class AddTask extends Component {
-
+     
         constructor(props) {
             super(props);
 
@@ -42,6 +44,8 @@ var users = [];
                 username: this.props.username,
                 projectKey: this.props.projectKey,
                 projectName: this.props.projectName,
+                userStoryKey: this.props.userStoryKey,
+                role: this.props.role,
                 tDescription: "",
                 tMemberAssigned: "",
                 tPercentage: "",
@@ -59,15 +63,13 @@ var users = [];
         }
 
     componentDidMount() {
-         this.setState({
-          userArray: this.userList()
-         }) 
-
+        this.userList()
    }
 
    userList(){
        var correctProjKey = this.state.projectKey;
-       user = [];
+       var correctUserStoryKey = this.state.userStoryKey;
+       users = [];
        this.projectsRef.on("value", (snapshot) => {
            snapshot.forEach((child) => { //each project
                if(child.key == correctProjKey){
@@ -101,10 +103,53 @@ var users = [];
 
            });
        });
+       this.pblRef.on("value", (snapshot) => {
+        currentPercentage = 0;
+        snapshot.forEach((child) => { //each userstory
+            if(child.key == correctUserStoryKey){
+                child.forEach(function(data)  { //each attribute
+                   var itemName = data.key;
+                   var itemValue = data.val();
+                   var currentProjectKey = '';
+
+                   if(itemName == '_userStory'){
+                       userStory = itemValue;
+                   }
+                    if(itemName == 'tasks'){
+                            data.forEach(function(data1){
+                                data1.forEach(function(data2){
+                                    var name = data2.key;
+                                    var value = data2.val();
+                                    if(name == 'percentage'){
+                                        if(value != ""){
+                                            var numValue = parseInt(value, 10);
+                                            currentPercentage = currentPercentage + numValue;
+                                        }
+    
+                                    }
+                                });
+                            }); 
+
+                   }
+                });
+            }
+        });
+       });
         this.setState({
           dataSource: this.state.dataSource.cloneWithRows(users)
         });
    }
+    onChanged(text) {
+    let newText = '';
+    let numbers = '0123456789';
+
+    for (var i = 0; i < text.length; i++) {
+        if ( numbers.indexOf(text[i]) > -1 ) {
+            newText = newText + text[i];
+        }
+    }   
+    this.setState({tPercentage: newText})
+}
 
     render() {
         return (
@@ -112,8 +157,12 @@ var users = [];
             <Container>
                 <StatusBar title="Task Item" />
             </Container>
+            <Container>
+             <Label text="Task for User Story" />
+             <Text>{userStory}</Text>
+            </Container>
 	     <Container>
-             <Label text="Description" />
+             <Label text="Description of Task" />
                  <TextInput
                 style={styles.textInput} 
                 autoCapitalize= 'none'
@@ -126,11 +175,11 @@ var users = [];
              <Label text="Percentage of User Story" />
                  <TextInput
                 style={styles.textInput} 
-                autoCapitalize= 'none'
-                returnKeyType = "next"
-                onChangeText={(text) =>{
-                    this.setState({tPercentage:text});
-                }}/>
+                keyboardType = 'numeric'
+                onChangeText = {(text)=> this.onChanged(text)}
+                value = {this.state.tPercentage}
+                maxLength = {3}
+                />
             </Container>
             <Container>
              <Label text="Member Assigned to Task" />
@@ -157,9 +206,9 @@ var users = [];
         );
     }
     cancel = () => {
-              var correctProjectName = this.state.projectName;
-      var correctUserName = this.state.username;
-    var correctProjKey = this.state.projectKey;
+        var correctProjectName = this.state.projectName;
+        var correctUserName = this.state.username;
+        var correctProjKey = this.state.projectKey;
         this.props.navigator.push({
             title: 'Scrum Board',
             component: ScrumBoard, 
@@ -176,84 +225,119 @@ var users = [];
         var correctMemberAssigned = this.state.tMemberAssigned;
         var correctPercentage = this.state.tPercentage;
         var correctProjectName = this.state.projectName;
-
-        var done=false;
+        var correctUserStoryKey = this.state.userStoryKey;
+        var correctProjKey = this.state.projectKey;
+        var correctUserName = this.state.username;
+        var correctRole = this.state.role;
+        
         var once = false;
+        var done = false;
+        var percentBoolean = false;
      
         if(once != true){
         this.pblRef.on("value", (snapshot) => {
             snapshot.forEach((child) => { //for each pbl item
-                if(child.val() == correctProjectName){
+                if(child.key == correctUserStoryKey){
                     child.forEach(function(data){ //for each attribute
                         var itemName = data.key;
-                        if(itemName == 'tasks'){
-                            once = false;
-                            this.pblRef.push({
-                                _description: correctDescription, 
+                        if(correctDescription == "" && once != true){
+                            once = true;
+                        }
+                        var correctPercentageConvert = parseInt(correctPercentage, 10);
+                        var totalPercentage = parseInt(currentPercentage + correctPercentageConvert, 10);
+                        if(totalPercentage > 100){
+                            once = true;
+                            percentBoolean = true;
+                        }
+                        if(itemName == 'tasks' && once !=true){
+                            once = true;
+                            done = true;
+                            data.ref.push( {
+                                _description : correctDescription ,
                                 status: 'ToDo',
                                 percentage: correctPercentage,
-                                assignedMember: correctMemberAssigned})
-                        }
-                        else{
-                            once = false;
-                            this.pblRef.push({
-                                tasks: {
-                                    _description: correctDescription, 
-                                    status: 'ToDo',
-                                    percentage: correctPercentage,
-                                    assignedMember: correctMemberAssigned}
-                            });
+                                assignedMember: correctMemberAssigned,
+                            })
                         }
                     });
                 }
+            });
         });
-          
-        if(done == false && once!=true){
-            var currentStatus = "productBacklog";
-                    var correctProjectName = this.state.projectName;
-            var correctUserName = this.state.username;
-            var correctProjKey = this.state.projectKey;
-            once=true;
-            var second=false;
-            
-        var size = 0;
-                this.projectsRef.on("value", (snapshot) => {
-                    snapshot.forEach((child) => {
-                    if(child.key==correctProjKey ){
-                    size=size+1;
-                    
-                    }});
-
-                });
-                    this.pblRef.push( {acc : tMemberAssigned ,
-                            _userStory: tDescription,
-                                description: pbiDescript,
-                                estimate: tPercentage,
-                            project: correctProjKey,
-                            location: currentStatus,
-                            priority: size,
-                    })
-                    AlertIOS.alert(
-                                'Success!',
-                                'Click View to Updated Scrum Board',
-                                [
-                                    {text: 'Okay', onPress: () => this.props.navigator.push({
-                                            title: 'Scrum Board',
-                                            component: ScrumBoard,
-                                        passProps:{
-                    username: correctUserName,
-                    projectKey: correctProjKey,
-                    projectName: correctProjectName,
-                    },                 
-                        }), style: 'cancel'},
-                                ]
-                                );                   
-                    }
-
-                    });
-                }   
-
     }
+    if(done == false && percentBoolean != true){ //error  - description empty
+        var correctProjectName = this.state.projectName;
+        var correctUserStoryKey = this.state.userStoryKey;
+        var correctProjKey = this.state.projectKey;
+        var correctUserName = this.state.username;
+        var correctRole = this.state.role;
+        AlertIOS.alert(
+            'Error!',
+            'A description is required.' + '\n' + 'Please fill in a task description before continuing.',
+            [
+            {text: 'Okay', onPress: () => this.props.navigator.push({
+                                    title: 'Add a Task',
+                        component: AddTask,
+                        passProps:{
+                            username: correctUserName,
+                            projectName: correctProjectName,
+                            projectKey: correctProjKey,
+                            userStoryKey: correctUserStoryKey,
+                            role: correctRole,
+                        }
+                        }), style: 'cancel'},
+            ]
+        ); 
+    }
+    if(done == false && percentBoolean == true){ //error  - percent exceeds 100
+        var correctProjectName = this.state.projectName;
+        var correctUserStoryKey = this.state.userStoryKey;
+        var correctProjKey = this.state.projectKey;
+        var correctUserName = this.state.username;
+        var correctRole = this.state.role;
+        AlertIOS.alert(
+            'Error!',
+            'Please enter a percentage that is less than 100%.' + '\n' + 'Current total percentage is ' + [currentPercentage] + '%.',
+            [
+            {text: 'Okay', onPress: () => this.props.navigator.push({
+                                    title: 'Add a Task',
+                        component: AddTask,
+                        passProps:{
+                            username: correctUserName,
+                            projectName: correctProjectName,
+                            projectKey: correctProjKey,
+                            userStoryKey: correctUserStoryKey,
+                            role: correctRole,
+                        }
+                        }), style: 'cancel'},
+            ]
+        ); 
+    }   
+
+    if(once == true && done ==true && percentBoolean != true){ //Works
+        var correctProjectName = this.state.projectName;
+        var correctProjKey = this.state.projectKey;
+        var correctUserName = this.state.username;
+        var correctRole = this.state.role;
+        AlertIOS.alert(
+            'Success!',
+            'Click Okay to return the Scrum Board',
+            [
+                {text: 'Okay', onPress: () => this.props.navigator.push({
+                                        title: 'Scrum Board',
+                        component: ScrumBoard,
+                        passProps:{
+                            username: correctUserName,
+                            projectKey: correctProjKey,
+                            projectName: correctProjectName,
+                            role: correctRole,
+                        }
+                            }), style: 'cancel'},
+            ]
+        ); 
+    }
+}
+
+
 //end of class
 }
 

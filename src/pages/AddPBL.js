@@ -255,6 +255,7 @@ if(done == false && once!=true){
                     project: correctProjKey,
                     location: currentStatus,
                     priority: size,
+                    tasks: {"placeholder": ""},
         })
             AlertIOS.alert(
                     'Success!',

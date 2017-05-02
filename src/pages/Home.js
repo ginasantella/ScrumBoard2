@@ -67,6 +67,7 @@ constructor(props) {
     var correctUsername = this.state.username;
     this.projectsRef.on("value", (snapshot) => {
         var projects =[];
+        var roleV = '';
         snapshot.forEach((child) => { //each project
              var projectName = '';
           child.forEach(function(data)  { //each attribute
@@ -80,14 +81,19 @@ constructor(props) {
                       var userID = data1.key;
                     if(userID==correctUsername){
                         data1.forEach(function(data2){
-                            if(data2.key == 'pending'){
-                                var pendingVal = data2.val();
+                            var itemAttribute = data2.key;
+                            var itemValue = data2.val();
+                            if(itemAttribute == '_role'){
+                                roleV = itemValue;
+                            }
+                            if(itemAttribute == 'pending'){
+                                var pendingVal = itemValue;
                                 if(pendingVal == false){
                                     projects.push({
                                         title: projectName,
                                         _key: data1.key,
                                         projectKey:child.key,
-                                        
+                                        roleValue: roleV,
                                     });
                                 }
                             }
@@ -160,8 +166,10 @@ constructor(props) {
       var correctUserName = this.state.username;
       var correctProjectName = item.title;
       var correctProjectKey = item.projectKey;
+      var correctRole = item.roleValue;
     
     const onPress = () => {
+        var correctRole = item.roleValue;
       AlertIOS.alert(
         'Project Options',
         null,
@@ -173,6 +181,7 @@ constructor(props) {
                 username: correctUserName,
                 projectName: correctProjectName,
                 projectKey: correctProjectKey,
+                role: correctRole,
             }
     })},
           {text: 'Add User', onPress: (text) => this.props.navigator.push({

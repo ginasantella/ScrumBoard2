@@ -44,10 +44,14 @@ export default class ScrumBoard extends Component {
               projectKey: this.props.projectKey,
               productBacklog:[],
               sprintBacklog:[],
+              toDoTasks:[],
               dataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
               }),
               sprintDataSource: new ListView.DataSource({
+                rowHasChanged: (row1, row2) => row1 !== row2,
+              }),
+              toDoDataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
               }),
               loaded: false
@@ -71,6 +75,7 @@ export default class ScrumBoard extends Component {
     this.productBacklogRef.on("value", (snapshot) => {
       var thisProductBacklog =[];
       var thisSprintBacklog =[];
+      var thisToDoTasks = [];
       snapshot.forEach((child) => { //each product backlog item
       var childVal = child;
       var AC = '';
@@ -78,6 +83,8 @@ export default class ScrumBoard extends Component {
       var estimate = '';
       var userStory = '';
       var status = '';
+      var projectValue ='';
+      var userStoryKeyValue = child.key;
       child.forEach(function(data)  { //each attribute
           var itemName = data.key;
           console.log("$$$ Key is: " + itemName + " $$$");
@@ -104,8 +111,8 @@ export default class ScrumBoard extends Component {
 
           }
           else if(itemName=='project'){
-            console.log("^^^^^^^^^^^^^^^^^^^^^INSIDE PROJECTS");
-                if(itemList==correctProjectKey){
+            projectValue = itemList;
+                if(projectValue==correctProjectKey){
                   console.log("ITEM LIST: " + itemList);
                   console.log("CORRECT PROJECT KEY: " + correctProjectKey);
                   console.log('WORKS!!!!!!!');
@@ -120,7 +127,7 @@ export default class ScrumBoard extends Component {
                           des: desc,
                           est: estimate,
                           us: userStory, 
-                          stat: status,  
+                          stat: status, 
                       });
                 }
                 else if(status=='sprintBacklog'){
@@ -131,10 +138,53 @@ export default class ScrumBoard extends Component {
                           des: desc,
                           est: estimate,
                           us: userStory, 
-                          stat: status,  
+                          stat: status,
+                          userStoryKey: userStoryKeyValue,   
                       });
                 }
                 }
+          }
+          else if(itemName =='tasks'){
+            if(projectValue==correctProjectKey){
+            var taskStatus = '';
+            var percentage = '';
+            var assignedMember = '';
+            var description = '';
+            data.forEach(function(data2)  {
+              var taskKey = data.key;
+              console.log("^^^^^^^^^^INSIDE TASKS");
+
+              data2.forEach(function(data3){
+                var taskName = data3.key;
+                var taskValue = data3.val();
+                              console.log("######$$$$$$$$$$$$ Task Name: " + taskName);
+                              console.log("######$$$$$$$$$$$$ Task Value: " + taskValue);
+                if(taskName == '_description'){
+                  description = taskValue;
+                }
+                if(taskName == 'assignedMember'){
+                  assignedMember = taskValue;
+                }
+                if(taskName == "percentage"){
+                  percentage = taskValue;
+                }
+                if(taskName == 'status'){
+                  taskStatus = taskValue;
+                }
+                if(taskStatus =='ToDo'){
+                  thisToDoTasks.push({
+                    title: description,
+                    key: taskKey,
+                    percent: percentage,
+                    desc: description,
+                    memb: assignedMember,
+                    stat: taskStatus,
+                    us: userStory,
+                });
+                }
+              });
+            });
+          }
           }
         });    
       });
@@ -145,8 +195,10 @@ export default class ScrumBoard extends Component {
       this.setState({
           dataSource: this.state.dataSource.cloneWithRows(thisProductBacklog),
           sprintDataSource: this.state.sprintDataSource.cloneWithRows(thisSprintBacklog),
+          toDoDataSource: this.state.toDoDataSource.cloneWithRows(thisToDoTasks),
           productBacklog: thisProductBacklog,
           sprintBacklog: thisSprintBacklog,
+          toDoTasks: thisToDoTasks,
     });
     
  
@@ -420,6 +472,7 @@ AlertIOS.alert(
                 <View style={{ flex: 1 }}>
           <ListView
           dataSource={this.state.dataSource}
+          enableEmptySections={true}
           renderRow={this._renderItem.bind(this)}
           style={styles.listview}/>
           </View>
@@ -429,11 +482,20 @@ AlertIOS.alert(
     <View style={{ flex: 1 }}>
        <ListView
           dataSource={this.state.sprintDataSource}
-          renderRow={this._renderSprintItem.bind(this)}/>
+          enableEmptySections={true}
+          renderRow={this._renderSprintItem.bind(this)}
+          style={styles.listview}/>
           </View>
           </Container>
         <Container>
        <Label text={"To Do"} />
+           <View style={{ flex: 1 }}>
+          <ListView
+            dataSource={this.state.toDoDataSource}
+            enableEmptySections={true}
+            renderRow={this._renderToDoTasks.bind(this)}
+            style={styles.listview}/>
+          </View>
         </Container>
         <Container>
        <Label text={"In Progress"} />
@@ -506,13 +568,16 @@ _renderSprintItem(item) {
     var correctProjectName=this.state.projectName;
     var correctUserName=this.state.username;
     var correctProjectKey = this.state.projectKey;
+    var correctRole = this.state.role;
 
     const onPress = () => {
       var desc = ''
+      var correctUserStoryKey = item.userStoryKey;
       if(item.des!=false){
         desc = item.des;
       }
-      AlertIOS.alert(
+      if(correctRole == 'Dev Team'){
+        AlertIOS.alert(
         'Description: ' + desc + '\n\n AC: ' + item.ac + '\n\n Size: ' + item.est ,
         null,
         [
@@ -523,11 +588,25 @@ _renderSprintItem(item) {
               username: correctUserName,
               projectName: correctProjectName,
               projectKey: correctProjectKey,
+              userStoryKey: correctUserStoryKey,
+              role: correctRole,
           }
           })},
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
       );
+    }
+    else{
+        AlertIOS.alert(
+        'Description: ' + desc + '\n\n AC: ' + item.ac + '\n\n Size: ' + item.est + '\n\n' +
+        'You are a product owner so you can not add tasks to the user story.',
+        null,
+        [
+          {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+    }
+
     };
 
     return (
@@ -536,13 +615,24 @@ _renderSprintItem(item) {
   }
 
 
-  // renderSprintBacklog(item){
-  
-  // }
-  
-  // renderToDoTasks(item){
-  
-  // }
+  _renderToDoTasks(item){
+    const onPress = () => {
+      var correctTaskKey = item.key;
+
+        AlertIOS.alert(
+        'Description: ' + item.desc +  '\n\n User Story: ' + item.us +'\n\n Assigned Member: ' + item.memb + '\n\n Percentage: ' + item.percent,
+        null,
+        [
+          {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+    
+    };
+
+    return (
+      <ListItem item={item} onPress={onPress} />
+    );
+  }
 
   // renderInProgressTasks(item){
   
