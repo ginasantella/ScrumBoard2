@@ -163,21 +163,23 @@ export default class ScrumBoard extends Component {
               data2.forEach(function(data3){
                 var taskName = data3.key;
                 var taskValue = data3.val();
-                              console.log("######$$$$$$$$$$$$ Task Name: " + taskName);
-                              console.log("######$$$$$$$$$$$$ Task Value: " + taskValue);
+                console.log("######$$$$$$$$$$$$ Task Name: " + taskName);
+                console.log("######$$$$$$$$$$$$ Task Value: " + taskValue);
                 if(taskName == '_description'){
                   description = taskValue;
                 }
-                if(taskName == 'assignedMember'){
+                else if(taskName == 'assignedMember'){
                   assignedMember = taskValue;
                 }
-                if(taskName == "percentage"){
+                else if(taskName == "percentage"){
                   percentage = taskValue;
                 }
-                if(taskName == 'status'){
+                else if(taskName == 'status'){
                   taskStatus = taskValue;
-                }
                 if(taskStatus =='ToDo'){
+                  console.log("^^^^^^^^^^^^^^INSIDE TO DO LOOP");
+                  console.log("******Desc: " + description);
+                  console.log("********Member assigned: " + assignedMember);
                   thisToDoTasks.push({
                     title: description,
                     key: taskKey,
@@ -187,6 +189,7 @@ export default class ScrumBoard extends Component {
                     stat: taskStatus,
                     us: userStory,
                 });
+              }
                 }
               });
             });
