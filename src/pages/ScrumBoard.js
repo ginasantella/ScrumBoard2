@@ -903,7 +903,7 @@ _renderSprintItem(item) {
     }
       else{
         AlertIOS.alert(
-        'Description: ' + item.desc +  '\n\n User Story: ' + item.us +'\n\n Assigned Member: ' + item.memb + '\n\n Percentage: ' + item.percent + '\n' +
+        'Description: ' + item.desc +  '\n\n User Story: ' + item.us +'\n\n Assigned Member: ' + item.memb + '\n\n Percentage: ' + item.percent + '\n\n' +
         'You cannot move this task becuase you are a Product Owner.',
         null,
         [
@@ -1016,7 +1016,7 @@ _renderSprintItem(item) {
     }
       else{
         AlertIOS.alert(
-        'Description: ' + item.desc +  '\n\n User Story: ' + item.us +'\n\n Assigned Member: ' + item.memb + '\n\n Percentage: ' + item.percent + '\n' +
+        'Description: ' + item.desc +  '\n\n User Story: ' + item.us +'\n\n Assigned Member: ' + item.memb + '\n\n Percentage: ' + item.percent + '\n\n' +
         'You cannot move this task becuase you are a Product Owner.',
         null,
         [
