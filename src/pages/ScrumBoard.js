@@ -51,6 +51,7 @@ export default class ScrumBoard extends Component {
               sprintBacklog:[],
               inProgressTasks:[],
               toDoTasks:[],
+              doneTasks: [],
               dataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
               }),
@@ -61,6 +62,9 @@ export default class ScrumBoard extends Component {
                 rowHasChanged: (row1, row2) => row1 !== row2,
               }),
               inProgressDataSource: new ListView.DataSource({
+                rowHasChanged: (row1, row2) => row1 !== row2,
+              }),
+              doneTasksDataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
               }),
               loaded: false
@@ -86,7 +90,8 @@ export default class ScrumBoard extends Component {
       var thisProductBacklog =[];
       var thisSprintBacklog =[];
       var thisToDoTasks = [];
-      thisInProgressTasks = [];
+      var thisInProgressTasks = [];
+      var thisDoneTasks = [];
       snapshot.forEach((child) => { //each product backlog item
       var childVal = child;
       var AC = '';
@@ -127,6 +132,7 @@ export default class ScrumBoard extends Component {
           }
           else if(itemName=='project'){
             projectValue = itemList;
+            var totalPercentage = 0;
                 if(projectValue==correctProjectKey){
                   console.log("ITEM LIST: " + itemList);
                   console.log("CORRECT PROJECT KEY: " + correctProjectKey);
@@ -159,8 +165,38 @@ export default class ScrumBoard extends Component {
                     }
                 }
                 else if(status=='sprintBacklog'){
+                  var projectVal = '';
+                  child.forEach(function(data1)  {
+                    var itemName2 = data1.key;
+                    var itemList2 = data1.val(); 
+                    if(itemName2=='project'){
+                        projectVal = itemList2;
+                    }
+                    else if(itemName2 =='tasks'){
+                      if(projectVal==correctProjectKey){
+                      var taskStatus = '';
+                      var percentage = '';
+                      data1.forEach(function(data2)  {
+                        var taskKey = data2.key;
+                        data2.forEach(function(data3){
+                          var taskName = data3.key;
+                          var taskValue = data3.val();
+                          if(taskName == "percentage"){
+                            percentage = taskValue;
+                          }
+                          else if(taskName == 'status'){
+                            taskStatus = taskValue;
+                            if(taskStatus =='Done'){
+                                totalPercentage = totalPercentage + parseInt(percentage, 10);
+                            }
+                          }
+                        });
+                      });
+                    }
+                  }
+                  });
                   if(userStory == ""){
-                    var newDesc = priority + ". " + desc;
+                    var newDesc = priority + ". " + desc + "\t " + totalPercentage + "%";
                     thisSprintBacklog.push({
                             title: newDesc,
                             _key: itemList,
@@ -173,7 +209,7 @@ export default class ScrumBoard extends Component {
                       });
                   }
                   else{
-                    var newUserStory = priority + ". " + userStory;
+                    var newUserStory = priority + ". " + userStory + "\t " + totalPercentage + "%";
                     thisSprintBacklog.push({
                             title: newUserStory,
                             _key: itemList,
@@ -236,6 +272,19 @@ export default class ScrumBoard extends Component {
                         userStoryKey: projectValue,
                     });
                   }
+                  else if(taskStatus =='Done'){
+                      var newDesc = priority + ". " + description;
+                      thisDoneTasks.push({
+                        title: newDesc,
+                        key: taskKey,
+                        percent: percentage,
+                        desc: description,
+                        memb: assignedMember,
+                        stat: taskStatus,
+                        us: userStory,
+                        userStoryKey: projectValue,
+                    });
+                  }
                 }
               });
             });
@@ -267,10 +316,12 @@ export default class ScrumBoard extends Component {
           sprintDataSource: this.state.sprintDataSource.cloneWithRows(thisSprintBacklog),
           toDoDataSource: this.state.toDoDataSource.cloneWithRows(thisToDoTasks),
           inProgressDataSource: this.state.inProgressDataSource.cloneWithRows(thisInProgressTasks),
+          doneTasksDataSource: this.state.doneTasksDataSource.cloneWithRows(thisDoneTasks),
           productBacklog: thisProductBacklog,
           sprintBacklog: thisSprintBacklog,
           toDoTasks: thisToDoTasks,
           inProgressTasks: thisInProgressTasks,
+          doneTasks: thisDoneTasks,
     });
     
  
@@ -581,6 +632,13 @@ AlertIOS.alert(
         </Container>
         <Container>
        <Label text={"Done"} />
+          <View style={{ flex: 1 }}>
+          <ListView
+            dataSource={this.state.doneTasksDataSource}
+            enableEmptySections={true}
+            renderRow={this._renderDoneTasks.bind(this)}
+            style={styles.listview}/>
+          </View>
         </Container>
         </ScrollView>
 
@@ -926,7 +984,7 @@ _renderSprintItem(item) {
     var correctTaskKey = item.key;
     var correctUserStoryKey = item.userStoryKey;
     var popup = false;
-    console.log("^^^^^^^^^^^INSIDE MOVE LOOP");
+
     if(correctPrecentage == '' && correctMember == ''){
       popup = true;
         AlertIOS.alert(
@@ -968,7 +1026,6 @@ _renderSprintItem(item) {
             projectValue = itemList;
           }
           else if(itemName =='tasks'){
-            console.log("^^^^^^^^^^^^^INSIDE TASK LOOP");
             if(projectValue==correctUserStoryKey){
             var taskStatus = '';
             data.forEach(function(data2)  {
@@ -979,8 +1036,6 @@ _renderSprintItem(item) {
                 if(taskName == 'status'){
                   taskStatus = taskValue;
                   if(taskStatus =='ToDo'){
-                    console.log("***************TASK KEY "+ taskKey);
-                    console.log("????????????Correct Task Key" + correctTaskKey);
                     if(taskKey == correctTaskKey){
                         data2.ref.update({
                           status:'InProgress',
@@ -1010,6 +1065,7 @@ _renderSprintItem(item) {
         'Description: ' + item.desc +  '\n\n User Story: ' + item.us +'\n\n Assigned Member: ' + item.memb + '\n\n Percentage: ' + item.percent,
         null,
         [
+          {text: 'Move Task to Done', onPress: (text) => this.moveToDone(item)},
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
       );
@@ -1031,9 +1087,65 @@ _renderSprintItem(item) {
     );
   }
 
-  // renderDoneTasks(item){
-  
-  // }
+  moveToDone(item){
+    var correctTaskKey = item.key;
+    var correctUserStoryKey = item.userStoryKey;
+
+    this.productBacklogRef.on("value", (snapshot) => {
+    snapshot.forEach((child) => { //each product backlog item
+    child.forEach(function(data)  { //each attribute
+        var itemName = data.key;
+        var itemList = data.val();
+        var projectVal = '';
+        if(itemName=='project'){
+          projectValue = itemList;
+        }
+        else if(itemName =='tasks'){
+          if(projectValue==correctUserStoryKey){
+          var taskStatus = '';
+          data.forEach(function(data2)  {
+            var taskKey = data2.key;
+            data2.forEach(function(data3){
+              var taskName = data3.key;
+              var taskValue = data3.val();
+              if(taskName == 'status'){
+                taskStatus = taskValue;
+                if(taskStatus =='InProgress'){
+                  if(taskKey == correctTaskKey){
+                      data2.ref.update({
+                        status:'Done',
+                      });
+                  }
+                }
+              }
+            });
+          });
+        }
+        }
+      });    
+    });
+  });
+
+  }
+
+  _renderDoneTasks(item){
+    const onPress = () => {
+    var correctTaskKey = item.key;
+
+      AlertIOS.alert(
+      'Description: ' + item.desc +  '\n\n User Story: ' + item.us +'\n\n Assigned Member: ' + item.memb + '\n\n Percentage: ' + item.percent,
+      null,
+      [
+        {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
+      ]
+    );
+    };
+
+    return (
+      <ListItem item={item} onPress={onPress} />
+    );
+  }
+  //END OF CLASS
 }
 module.exports = ScrumBoard;
 AppRegistry.registerComponent('Panels', () => ScrumBoard);
