@@ -85,7 +85,6 @@ export default class ScrumBoard extends Component {
 
    updateProductBacklog(){
     var correctProjectKey = this.state.projectKey;
-    console.log("$%^&*() Project key is: " + correctProjectKey + " $%^&*()");
     this.productBacklogRef.on("value", (snapshot) => {
       var thisProductBacklog =[];
       var thisSprintBacklog =[];
@@ -104,9 +103,7 @@ export default class ScrumBoard extends Component {
       var userStoryKeyValue = child.key;
       child.forEach(function(data)  { //each attribute
           var itemName = data.key;
-          console.log("$$$ Key is: " + itemName + " $$$");
           var itemList = data.val();
-          console.log("$$$ Val is: " + itemList + " $$$");
           
           if(itemName=='acc'){
             AC = itemList;
@@ -119,7 +116,6 @@ export default class ScrumBoard extends Component {
           }
           else if(itemName=='_userStory'){
             userStory = itemList;
-            console.log('CORRECT User story is: ' + userStory);
 
           }
           else if(itemName == 'priority'){
@@ -127,19 +123,12 @@ export default class ScrumBoard extends Component {
           }
           else if(itemName=='location'){
             status = itemList;
-            console.log("STATUS IS: " + status);
 
           }
           else if(itemName=='project'){
             projectValue = itemList;
             var totalPercentage = 0;
                 if(projectValue==correctProjectKey){
-                  console.log("ITEM LIST: " + itemList);
-                  console.log("CORRECT PROJECT KEY: " + correctProjectKey);
-                  console.log('WORKS!!!!!!!');
-                  console.log('User story is: ' + userStory);
-                  console.log('Item name is: ' + itemName);
-                  console.log("$$$ THIS STATUS IS: " + status);
                   if(status=='productBacklog'){
                     if(userStory == ""){
                           thisProductBacklog.push({
@@ -298,8 +287,6 @@ export default class ScrumBoard extends Component {
       var newestPBL = [];
             for(i = (thisProductBacklog.length)-1; i>=0; i--){
             thisProductBacklog.forEach((child) => {
-              // console.log("Child key is: " + child.title);
-              // console.log("Child val is: " + child._key);
               if(child.priority==i){
                 newestPBL.push({
                   title: child.title,
@@ -326,14 +313,7 @@ export default class ScrumBoard extends Component {
           inProgressTasks: thisInProgressTasks,
           doneTasks: thisDoneTasks,
     });
-    
- 
-    console.log("DING DING DING");
-    this.state.productBacklog.forEach((child) => {
-        console.log("PB key is: " + child.title);
-        console.log("PB val is: " + child._key);
-      });
-    });
+  });
 }
 toAddPL = () =>{
        var correctProjectName=this.state.projectName;
@@ -370,7 +350,6 @@ toAddPL = () =>{
                                               correctKey=data2.key;
                                               if(correctKey=="_role"){
                                                 correctRole=data2.val();
-                                              console.log("####################"+correctRole);
                                               
                                               }
                                               
@@ -383,7 +362,6 @@ toAddPL = () =>{
                                             if(itemName=='users' && once!=true){
                                             once=true;
                                             correctRole=[correctUserName]._role;
-                                             console.log("####################2"+itemName);
                                            }
                                          }
                                     }
@@ -433,15 +411,20 @@ toAddPL = () =>{
   }
 
   toEditPL = (item) =>{
-     var correctpblKey=item._key;
-   var correctProjectName=this.state.projectName;
-      var correctUserName=this.state.username;
-      var correctRole = this.state.role;
-      var done = false;
+    var correctpblKey=item.val;
+    var correctProjectName=this.state.projectName;
+    var correctUserName=this.state.username;
+    var correctRole = this.state.role;
+    var done = false;
     var exists = false;
     var once =false;
     var second=false;
+
     var correctEstimate=item.est;
+    var correctDesc = item.des;
+    var correctLocation = item.stat;
+    var correctUserStory = item.us;
+    var correctAc = item.ac;
     var correctEstimateVal;
     var correctProjectKey = this.state.projectKey;
     if(correctEstimate==""){
@@ -459,16 +442,7 @@ toAddPL = () =>{
      if(correctEstimate=="XL"){
       correctEstimateVal=4;
     }
-
-  
-  //   });
-      
-    
-     
-
-  // if(correctRole == "Product Owner"){
     var currentPriority;
-     
 
     this.props.navigator.push({
       title: 'Edit Project Item',
@@ -487,25 +461,7 @@ toAddPL = () =>{
           pblKey: correctpblKey,
          
       }
-    });//}
- //else{
-// AlertIOS.alert(
-//                              'Error!',
-//                              'Only the product owner can edit the product backlog!',
-//                              [
-//                              {text: 'Okay', onPress: () => this.props.navigator.push({
-//                                      title: 'Scrum Board',
-//                                      component: ScrumBoard,
-//                                      passProps:{
-//                                       role: correctRole,
-//            username: correctUserName,
-//            projectName: correctProjectName,
-//            projectKey:correctProjectKey,}
-                                   
-//                     }), style: 'cancel'},
-//                         ]
-//                              );
-// }
+    });
 
   }
 
@@ -608,7 +564,7 @@ _renderItem(item) {
       //var correctProjectKey = item.projectKey;
       var correctRole=this.state.role;
      
-    this.toEditPL=this.toEditPL.bind(this);
+     this.toEditPL=this.toEditPL.bind(this);
     const onPress = () => {
       var desc = ''
       if(item.des!=false){
@@ -619,20 +575,15 @@ _renderItem(item) {
         correctUserStory = item.us; 
         correctLocation = item.status;
       }
-      console.log("!!!!!!!!!!!!!!!!! role: "+ correctRole);
-      if(correctRole=="Product Owner"){
 
-  
+      if(correctRole=="Product Owner"){
       AlertIOS.alert(
         'Description: ' + desc + '\n\n AC: ' + item.ac + '\n\n Size: ' + item.est ,
         null,
         [
           {text: 'Move Item Up', onPress: (text) => this.moveUp(item)},
-          {text: 'Move Item Down', onPress: (text) => this.moveDown(item)},
-          
-          {text: 'Edit Product Backlog', onPress: (text) =>this.toEditPL(item)}
-                      ,
-        
+          {text: 'Move Item Down', onPress: (text) => this.moveDown(item)},       
+          {text: 'Edit Product Backlog', onPress: (text) =>this.toEditPL(item)},
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
       );

@@ -43,40 +43,24 @@ var radio_props = [
                 username: this.props.username,
                 projectKey: this.props.projectKey,
                 projectName: this.props.projectName,
-               // ac: this.props.ac,
                 role: this.props.role,
-               // estimate: this.props.estimate,
-               // userStory: this.props.userStory,
-               // description: this.props.description,
                 location: this.props.location,
                 pblKey: this.props.pblKey,
                 passedVal: this.props.estimateVal,
                 pbiDescription: this.props.description,
                 pbiUserStory: this.props.userStory,
                 pbiAcc:  this.props.ac,
-                //pbiEstimateVal: this.props.estimateVal,
                 pbiStatus: "",
                
             };
-            console.log("********?????????passed value"+this.state.passedVal);
-             console.log(this.state.userStory);
             this.pblRef = this.getRef().child('prodBacklogs');
             this.projectsRef = this.getRef().child('projects');
-         //   this.shouldSetInputTextToDefaultValue = this.shouldSetInputTextToDefaultValue.bind (this); // bind method's 'this' to the instance
  
         }
 
         getRef() {
             return firebaseApp.database().ref();
         }
-
-//  shouldSetInputTextToDefaultValue (props)
-//     {
-//         var result =
-//             this.previousDefaultText        != props.ac ||
-//             this.proviousChangeIndicator    != props.changeIndicator;
-//         return result;
-//     }
 
     render() {
         return (
@@ -86,9 +70,7 @@ var radio_props = [
             </Container>
             <Container>
              <Label text="Description" />
-           
                  <TextInput
-                
                 style={styles.textInput} 
                  defaultValue={this.state.pbiDescription}
                 autoCapitalize= 'none'
@@ -127,7 +109,7 @@ var radio_props = [
                         <RadioForm
                             radio_props={radio_props}
                             initial={this.state.passedVal -1}
-                            onPress={(value) => {this.setState({value:value})}}/>
+                            onPress={(value) => {this.setState({passedVal:value})}}/>
                     </View>
         </Container>
             <View style={styles.footer}>
@@ -164,25 +146,11 @@ var radio_props = [
     }
 
     toCreatePBI(){
-        console.log("))))))))))))))))))) new pbi user story: "+ this.state.pbiUserStory);
     var desc = this.state.pbiDescription;
     var us = this.state.pbiUserStory;
     var acc = this.state.pbiAcc;
-    //var original = false;
-    // if(desc != ""){
-    //     original = true;
-    //     desc = this.state.description;
-    // }
-    // if(us != "" ){
-    //     original = true;
-    //     us = this.state.userStory;
-    // }
-    // if(acc == ""){
-    //     acc = this.state.ac;
-    // }
-        var correctEstimate = "";
+    var correctEstimate = "";
     var correctValue = this.state.passedVal;
-
     if(correctValue==0){
         correctEstimate="";
     }
@@ -204,20 +172,15 @@ var radio_props = [
         if(once != true){
 
         this.pblRef.on("value", (snapshot) => {
-            //done = false;
             snapshot.forEach((child) => {
-              // console.log("****"+child.val().description);
-               console.log("***>>>>>>>*Description : "+desc);
-               console.log("***>>>>>>>>*User Story"+us);
               
             if(desc=="" && us=="" && once!=true ){
-                           var correctUserName = this.state.username;
-                            var correctProjKey = this.state.projectKey;
-var correctRole = this.state.role;
- var correctProjectName = this.state.projectName;
-    console.log("****2"+correctProjKey);
-                        done = true;  
-                        once = true; 
+                var correctUserName = this.state.username;
+                var correctProjKey = this.state.projectKey;
+                var correctRole = this.state.role;
+                var correctProjectName = this.state.projectName;
+                done = true;  
+                once = true; 
                         AlertIOS.alert(
                             'Error!',
                             'All required fields must be filled!',
@@ -227,123 +190,75 @@ var correctRole = this.state.role;
                                     component: EditPBL,
                                     passProps:{
                                         username: correctUserName,
-              projectKey: correctProjKey,
-              projectName: correctProjectName,
-                                         ac: this.props.ac,
-                estimate: this.props.estimate,
-                userStory: this.props.userStory,
-                description: this.props.description,
-                location: this.props.location,
-                 passedVal: this.props.estimateVal,
-                 pblKey: this.props.pblKey,
-                                  
-                                    role: correctRole,
+                                        projectKey: correctProjKey,
+                                        projectName: correctProjectName,
+                                        ac: this.props.ac,
+                                        estimate: this.props.estimate,
+                                        userStory: this.props.userStory,
+                                        description: this.props.description,
+                                        location: this.props.location,
+                                        passedVal: this.props.estimateVal,
+                                        pblKey: this.props.pblKey,
+                                        role: correctRole,
                                 }
-                                   
-                   }), style: 'cancel'},
-                        ]
-                            );
-                       
-                     
+                            }), style: 'cancel'},
+                            ]   
+                            );       
                         }
                        
                      if(once!=true){
-
-
-                    console.log("********SUCCESS LOOP*********");
-                    var correctProjKey =  this.state.projectKey;
-                   
-                    //done=true;
-                   // once=true;
-                    var currentStatus = "productBacklog";
-                    var currentPriority = child.val().priority;
-                     console.log("********prior"+correctProjKey);
-                  var correctProjectName = this.state.projectName;
-      var correctUserName = this.state.username;
-    var correctProjKey = this.state.projectKey;
-var correctRole = this.state.role;
-
-      
-  
-
-       
-           // once=true;
-           var thiskey;
-            console.log("!!!!!!!!!!!!! pbl key: "+ this.state.pblKey);
-            console.log("?????????????? child key: "+ child.key);
-            
-            if(child.key==this.state.pblKey){
-                thiskey=child.val();
-           // console.log("!!!!!!!!!))))))((((!!!! child val key: "+ key);
-            //if(thiskey==correctProjKey){
-            console.log("?????????????? project key:  "+this.state.projectKey);
-            once=true;
-             child.ref.update( { acc : acc ,
-                       _userStory: us,
-                        description: desc,
-                        estimate: correctEstimate,
-                       project: correctProjKey,
-                       key: correctProjKey,
-                       location: currentStatus,
-                       priority: currentPriority});
-                    AlertIOS.alert(
-                           'Success!',
-                            'Project Item has been edited!',
-                           [
-                            {text: 'Okay', onPress: () => this.props.navigator.push({
-                                    title: 'Scrum Board',
-                                    component: ScrumBoard,
-                                   passProps:{
-                                   username: correctUserName,
-              projectKey: correctProjKey,
-              projectName: correctProjectName,
-                                     ac: this.props.ac,
-                estimate: correctEstimate,
-                userStory: this.props.userStory,
-                description: this.props.description,
-                location: this.props.location,
-                    role: this.state.role,
-
-                                }
-
-                   }), style: 'cancel'},
-                        ]
+                        var correctProjKey =  this.state.projectKey;
+                        var currentStatus = "productBacklog";
+                        var currentPriority = child.val().priority;
+                        var correctProjectName = this.state.projectName;
+                        var correctUserName = this.state.username;
+                        var correctProjKey = this.state.projectKey;
+                        var correctRole = this.state.role;
+                        
+                        var thiskey;
+                        if(child.key==this.state.pblKey){
+                            thiskey=child.val();
+                            once=true;
+                            child.ref.update( { acc : acc ,
+                                _userStory: us,
+                                description: desc,
+                                estimate: correctEstimate,
+                                project: correctProjKey,
+                                key: correctProjKey,
+                                location: currentStatus,
+                                priority: currentPriority}
+                            );
+                            AlertIOS.alert(
+                                'Success!',
+                                    'Project Item has been edited!',
+                                [
+                                    {text: 'Okay', onPress: () => this.props.navigator.push({
+                                            title: 'Scrum Board',
+                                            component: ScrumBoard,
+                                            passProps:{
+                                                username: correctUserName,
+                                                projectKey: correctProjKey,
+                                                projectName: correctProjectName,
+                                                ac: this.props.ac,
+                                                estimate: correctEstimate,
+                                                userStory: this.props.userStory,
+                                                description: this.props.description,
+                                                location: this.props.location,
+                                                role: this.state.role,
+                                        }
+                                    }), style: 'cancel'},
+                                    ]
                            );
                            return;
-                }
-            }
-             //  }
-    
-                        else{}
-
-        });
-          
-
-                
-                        
-        //  if(child.val().id!=inputUserName && inputUserName != "" && inputPassword != "" && confirmPassword !="" && inputPassword==confirmPassword){
-                        
-           // }     
-    
-  //  console.log("**********************ex user"+existingUser)
-         
+                        }
+                    }
+                });
             });
-           
-
         }   
-    //}
-}
-
-
+    }   
 //end of class
 }
-// UncontrolledTextInput.propTypes =
-// {
-//     defaultText:        React.PropTypes.any,                // Default input text field value, written when it changes or when the changeIndicator changes.  Note - .isRequired fails for an unknown reason
-//     changeIndicator:    React.PropTypes.any,                // Optional indicator, which on change triggers a write of defaultText to the text input field
-//     onBlur:             React.PropTypes.func.isRequired,    // Method to capture user-edited value on exit from field
-//     inputProps:         React.PropTypes.any                 // attributes you want to pass to the input text element, for example {{className = "'form-control'"}}
-// };
+
 //Styles
 const styles = StyleSheet.create({
  scroll: {
