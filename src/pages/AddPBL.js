@@ -40,7 +40,7 @@ export default class AddPBL extends Component {
             username: this.props.username,
             projectKey: this.props.projectKey,
             projectName: this.props.projectName,
-            pbiRole: this.props.role,
+            pblRole: this.props.role,
             pbiDescription: "",
             pbiUserStory: "",
             pbiAcc: "",
@@ -180,6 +180,7 @@ toCreatePBI(){
                 var correctUserName = this.state.username;
                 var correctRole = this.state.pblRole;
                 var correctProjKey =  this.state.projectKey;
+                 var correctProjectName = this.state.projectName;
             //     console.log("****1"+correctProjKey);
                 done=true;
                 once=true;
@@ -204,7 +205,9 @@ toCreatePBI(){
             }
             else if(pbiDescript!="false" && pbiDescript=="" && pbiUserStory=="" && once!=true){
                     var correctProjKey = this.state.projectKey;
-                    
+                    var correctUserName = this.state.username;
+                    var correctRole = this.state.pblRole;
+                    var correctProjectName = this.state.projectName;
                     //console.log("****2"+correctProjKey);
                     done = true;  
                     once = true; 

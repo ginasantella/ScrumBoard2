@@ -140,6 +140,7 @@ var radio_props = [
               username: correctUserName,
               projectKey: correctProjKey,
               projectName: correctProjectName,
+              role: this.state.role,
 
             }
         });
@@ -214,9 +215,12 @@ var radio_props = [
                         var correctUserName = this.state.username;
                         var correctProjKey = this.state.projectKey;
                         var correctRole = this.state.role;
+                        var kkkey = this.state.pblKey;
                         
                         var thiskey;
-                        if(child.key==this.state.pblKey){
+                        console.log("CHILD>KEY" + child.key);
+                        console.log("&&&&&&&&&&pblkey" + this.state.pblKey);
+                        if(child.key==kkkey){
                             thiskey=child.val();
                             once=true;
                             child.ref.update( { acc : acc ,

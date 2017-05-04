@@ -102,6 +102,7 @@ export default class ScrumBoard extends Component {
       var projectValue ='';
       var priority = '';
       var userStoryKeyValue = child.key;
+
       child.forEach(function(data)  { //each attribute
           var itemName = data.key;
           var itemList = data.val();
@@ -132,6 +133,8 @@ export default class ScrumBoard extends Component {
                 if(projectValue==correctProjectKey){
                   if(status=='productBacklog'){
                     if(userStory == ""){
+                      var userStoryKeyValue = child.key;
+                            console.log("!!!!!!!!!!!!!!! key value: " + userStoryKeyValue);
                           thisProductBacklog.push({
                           title: desc,
                           _key: itemList,
@@ -140,10 +143,12 @@ export default class ScrumBoard extends Component {
                           est: estimate,
                           us: userStory, 
                           stat: status, 
-                          val: userStoryKeyValue,
+                          keyVal: userStoryKeyValue,
+                          priority: priority,
                       });
                     }
                     else{
+                      var userStoryKeyValue = child.key;
                     thisProductBacklog.push({
                             title: userStory,
                             _key: itemList,
@@ -152,8 +157,8 @@ export default class ScrumBoard extends Component {
                             est: estimate,
                             us: userStory, 
                             stat: status, 
-                            val: userStoryKeyValue,
-                            
+                            keyVal: userStoryKeyValue,
+                            priority: priority,
                         });
                     }
                 }
@@ -189,6 +194,7 @@ export default class ScrumBoard extends Component {
                   }
                   });
                   if(userStory == ""){
+                    var userStoryKeyValue = child.key;
                     var newDesc = priority + ". " + desc + "\t " + totalPercentage + "%";
                     thisSprintBacklog.push({
                             title: newDesc,
@@ -203,6 +209,7 @@ export default class ScrumBoard extends Component {
                   }
                   else{
                     var newUserStory = priority + ". " + userStory + "\t " + totalPercentage + "%";
+                    var userStoryKeyValue = child.key;
                     thisSprintBacklog.push({
                             title: newUserStory,
                             _key: itemList,
@@ -286,7 +293,7 @@ export default class ScrumBoard extends Component {
         });    
       });
       var newestPBL = [];
-            for(i = (thisProductBacklog.length)-1; i>=0; i--){
+            for(i = (thisProductBacklog.length); i>=0; i--){
             thisProductBacklog.forEach((child) => {
               if(child.priority==i){
                 newestPBL.push({
@@ -296,6 +303,7 @@ export default class ScrumBoard extends Component {
                   des: child.des,
                   est: child.est,
                   us: child.us,
+                  keyVal: child.keyVal,
                   stat: child.stat,
                   priority: child.priority,
               });
@@ -303,7 +311,7 @@ export default class ScrumBoard extends Component {
             });
       }
       this.setState({
-          dataSource: this.state.dataSource.cloneWithRows(thisProductBacklog),
+          dataSource: this.state.dataSource.cloneWithRows(newestPBL),
           sprintDataSource: this.state.sprintDataSource.cloneWithRows(thisSprintBacklog),
           toDoDataSource: this.state.toDoDataSource.cloneWithRows(thisToDoTasks),
           inProgressDataSource: this.state.inProgressDataSource.cloneWithRows(thisInProgressTasks),
@@ -412,7 +420,8 @@ toAddPL = () =>{
   }
 
   toEditPL = (item) =>{
-    var correctpblKey=item.val;
+    var correctpblKey=item.keyVal;
+    console.log("&&&&&&&&&&&&!!!!!!!!!!!!! pblKey: " + correctpblKey);
     var correctProjectName=this.state.projectName;
     var correctUserName=this.state.username;
     var correctRole = this.state.role;
@@ -618,7 +627,6 @@ _renderItem(item) {
       //var correctProjectKey = item.projectKey;
       var correctRole=this.state.role;
      
-     this.toEditPL=this.toEditPL.bind(this);
     const onPress = () => {
       var desc = ''
       if(item.des!=false){
@@ -636,7 +644,7 @@ _renderItem(item) {
         null,
         [
           {text: 'Move Item Up', onPress: (text) => this.moveUp(item)},
-          {text: 'Move Item Down', onPress: (text) => this.moveDown(item)},       
+          {text: 'Move Item Down', onPress: (text) => this.moveDown(item)},   
           {text: 'Edit Product Backlog', onPress: (text) =>this.toEditPL(item)},
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
@@ -650,7 +658,7 @@ _renderItem(item) {
         "Dev Team members can not edit a product backlog item.",
         [
               
-        
+          {text: 'Move PBI to SB',onPress: (text) => this.moveItemFromPBtoSB(item)},    
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
       );
@@ -660,7 +668,7 @@ _renderItem(item) {
     return (
       <ListItem item={item} onPress={onPress} />
     );
-  }
+  } 
 
 
   moveDown(item){
@@ -967,12 +975,141 @@ _renderSprintItem(item) {
     );
   }
 
+  moveItemFromPBtoSB(item){
+    var correctStatus = item.stat;
+    // var correctPrecentage = item.percent;
+    var correctDescription = item.des;
+    // var correctMember = item.memb;
+    var correctTaskKey = item._key;
+    var correctUserStoryKey = item.us;
+    var productBacklog = this.state.productBacklog;
+    var sprintBacklog = this.state.sprintBacklog;
+    var currentPriority = item.priority;
+    var updatedPriority =0;
+    var correctRole = this.state.role;
+    var acceptanceCriteria = item.ac;
+    // var location = item.location;
+    var updatedLocation = "sprintBacklog";
+    var estimate = item.est;
+    var variable = false;
+    var compliant = false;
+    if(correctUserStoryKey.indexOf("As a")> -1 && correctUserStoryKey.indexOf("I want to")> -1 && correctUserStoryKey.indexOf("so that")> -1){
+      compliant = true;
+      console.log("!!!^^^^&&&**(())___User story is correct");
+    }
+
+    console.log("currentPriority is: " + currentPriority);
+    console.log("PBL size is: " + productBacklog.length);
+    console.log("Item priority is: " + currentPriority);
+    if(correctRole != 'Dev Team'){
+      console.log("DON'T MOVE TO SPRINT BACKLOG, ONLY A DEV TEAM MEMBER CAN MOVE ITEMS FROM THE PB TO SB");
+      AlertIOS.alert(
+        'Ony a development team member can move an item from the product backlog to the sprint backlog',
+        null,
+        [
+          {text: 'Okay', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+    }
+   else if (acceptanceCriteria == ""){
+     AlertIOS.alert(
+        'Story must have AC.',
+        null,
+        [
+          {text: 'Okay', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+   }
+      else if (estimate == ""){
+     AlertIOS.alert(
+        'Story must have an estimate.',
+        null,
+        [
+          {text: 'Okay', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+   }
+   else if(!compliant){
+     AlertIOS.alert(
+        'Story must have a correct US template.',
+        null,
+        [
+          {text: 'Okay', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+   }
+   else if(correctRole == 'Dev Team' && item.priority==((productBacklog.length) -1)){
+      this.productBacklogRef.on("value", (snapshot) => {
+        var proj ='';
+        var loc = '';
+        var US = '';
+            snapshot.forEach((child) => {
+        console.log("Item priority is: " + currentPriority);
+      
+      child.forEach(function(data){
+          var itemName = data.key;
+          var itemList = data.val();
+          if (itemName == 'key'){
+            proj=itemList;
+          }
+          else if(itemName=='location'){
+            loc=itemList;
+          }
+          else if(itemName=='_userStory'){
+            US=itemList;
+          }
+          console.log("Item priority is: " + item.priority);
+          console.log("PBL size is: " + ((productBacklog.length)-1));
+          console.log("This proj key is: " + proj);
+          console.log("Item proj key is: " + correctTaskKey);
+          console.log("This loc is: " + loc);
+          console.log("Item loc is: " + item.stat);
+          console.log("This US is: " + US);
+          console.log("Item US is: " + item.us);
+        if(item.priority==((productBacklog.length) -1) && proj==correctTaskKey && loc==correctStatus && US==correctUserStoryKey && compliant){
+          console.log("Inside if statement");
+        
+        child.ref.update({
+          location: updatedLocation,
+          priority: sprintBacklog.length,
+          });
+        if (!variable){
+          AlertIOS.alert(
+        'Sucess',
+            'The Project Backlog Item has been moved to the Sprint Backlog!',
+        [
+          {text: 'Okay', onPress: (text) => console.log('Finished')}
+        ]
+     );
+     variable = true;
+        }
+        }
+      // currentPriority = ((sprintBacklog.length) + 1);
+   //   return(
+        // <ListItem item={item} onPress={onPress} />
+    //  );
+      });   
+       });
+  });
+}
+else{
+       AlertIOS.alert(
+        'Only the top product backlog item can be moved to the sprint backlog.',
+        null,
+        [
+          {text: 'Okay', onPress: (text) => console.log('Cancelled')}
+        ]
+      );
+}
+  } 
+
+
   moveToInProgress(item){
     var correctStatus = item.stat;
     var correctPrecentage = item.percent;
     var correctDescription = item.desc;
     var correctMember = item.memb;
-    var correctTaskKey = item.key;
+    var correctTaskKey = item.keyTask;
     var correctUserStoryKey = item.userStoryKey;
     var popup = false;
 
@@ -1018,6 +1155,7 @@ _renderSprintItem(item) {
           }
           else if(itemName =='tasks'){
             if(projectValue==correctUserStoryKey){
+              
             var taskStatus = '';
             data.forEach(function(data2)  {
               var taskKey = data2.key;
@@ -1028,6 +1166,7 @@ _renderSprintItem(item) {
                   taskStatus = taskValue;
                   if(taskStatus =='ToDo'){
                     if(taskKey == correctTaskKey){
+                      console.log("^^^^^^^^^^^^^^^^^^^INSIDE LOOP");
                         data2.ref.update({
                           status:'InProgress',
                         });
@@ -1079,7 +1218,7 @@ _renderSprintItem(item) {
   }
 
   moveToDone(item){
-    var correctTaskKey = item.key;
+    var correctTaskKey = item.keyTask;
     var correctUserStoryKey = item.userStoryKey;
 
     this.productBacklogRef.on("value", (snapshot) => {
