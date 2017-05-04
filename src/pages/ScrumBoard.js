@@ -31,6 +31,7 @@ import AddPBL from './AddPBL';
 import EditPBL from './EditPBL'
 import ListItem from '../components/ListItem';
 import AddTask from './AddTask';
+import EditTask from './EditTask';
 const StatusBar = require('../components/StatusBar');
 //var ds = new ListView.DataSource({ rowHasChanged: (row1, row2) => row1 !== row2 })
  var correctAc;
@@ -242,7 +243,7 @@ export default class ScrumBoard extends Component {
                       var newDesc = priority + ". " + description;
                       thisToDoTasks.push({
                         title: newDesc,
-                        key: taskKey,
+                        keyTask: taskKey,
                         percent: percentage,
                         desc: description,
                         memb: assignedMember,
@@ -255,7 +256,7 @@ export default class ScrumBoard extends Component {
                       var newDesc = priority + ". " + description;
                       thisInProgressTasks.push({
                         title: newDesc,
-                        key: taskKey,
+                        keyTask: taskKey,
                         percent: percentage,
                         desc: description,
                         memb: assignedMember,
@@ -268,7 +269,7 @@ export default class ScrumBoard extends Component {
                       var newDesc = priority + ". " + description;
                       thisDoneTasks.push({
                         title: newDesc,
-                        key: taskKey,
+                        keyTask: taskKey,
                         percent: percentage,
                         desc: description,
                         memb: assignedMember,
@@ -465,18 +466,71 @@ toAddPL = () =>{
 
   }
 
-  toAddTask = () => {
-    var correctProjectName=this.state.projectName;
-    var correctUserName=this.state.username;
-    var correctProjectKey = this.state.projectKey;
+    toEditTask(item){
+      var correctProjectName=this.state.projectName;
+      var correctUserName=this.state.username;
+      var correctRole = this.state.role;
+      var correctProjectKey = this.state.projectKey;
+
+     var correctPercentage = item.percent;
+     var correctDesc = item.desc;
+     var correctUserStory = item.us;
+     var correctMemberAssigned = item.memb;
+     var correctTaskKey = item.keyTask;      
+     var correctUserStoryKey = item.userStoryKey;
+
+    var something = -1;
+       var count = 0;
+       this.projectsRef.on("value", (snapshot) => {
+           snapshot.forEach((child) => { //each project
+               if(child.key == correctProjectKey){
+               child.forEach(function(data)  { //each attribute
+                   var itemName = data.key;
+                   if(itemName=='users'){
+                        data.forEach(function(data2) {
+                            var username = data2.key;
+                            var role = '';
+                            var pendingStatus = '';
+                            data2.forEach(function(data3) {
+                                var attributeName = data3.key;
+                                var attributeValue = data3.val();
+                                if(attributeName == "_role"){
+                                    role = attributeValue;
+                                }
+                                if(attributeName == 'pending'){
+                                    pendingStatus = attributeValue;
+                                }
+                            });
+                            if(pendingStatus == false && role == 'Dev Team'){
+                                count = count + 1;
+                                if(username == correctMemberAssigned){
+                                    something = count-1;
+                                }
+                            }
+                        });
+                    }
+               });
+               }
+
+           });
+       });
+
     this.props.navigator.push({
-    title: 'Add Project Task Item',
-    component: AddTask,
-    passProps:{
-        username: correctUserName,
-        projectName: correctProjectName,
-        projectKey: correctProjectKey,
-    }
+      title: 'Edit Task',
+     component: EditTask,
+      passProps:{
+          role: correctRole,
+          username: correctUserName,
+          projectName: correctProjectName,
+          projectKey:correctProjectKey,
+          description: correctDesc,
+          userStory: correctUserStory,
+          membAssign: correctMemberAssigned,
+          percent: correctPercentage,
+          userStoryKey: correctUserStoryKey,
+          taskKey: correctTaskKey,
+          somethingVal: something,
+      }
     });
 
   }
@@ -890,6 +944,7 @@ _renderSprintItem(item) {
         'Description: ' + item.desc +  '\n\n User Story: ' + item.us +'\n\n Assigned Member: ' + item.memb + '\n\n Percentage: ' + item.percent,
         null,
         [
+          {text: 'Edit Task', onPress: (text) => this.toEditTask(item)},
           {text: 'Move Task to In Progress', onPress: (text) => this.moveToInProgress(item)},
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]

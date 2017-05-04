@@ -34,9 +34,8 @@ const StatusBar = require('../components/StatusBar');
 var users = []; 
 var userStory = "";
 var currentPercentage = 0;
+ export default class EditTask extends Component {
 
- export default class AddTask extends Component {
-     
         constructor(props) {
             super(props);
 
@@ -46,14 +45,16 @@ var currentPercentage = 0;
                 projectName: this.props.projectName,
                 userStoryKey: this.props.userStoryKey,
                 role: this.props.role,
-                tDescription: "",
-                tMemberAssigned: "",
-                tPercentage: "",
+                tDescription: this.props.description,
+                tMemberAssigned: this.props.membAssign,
+                tPercentage: this.props.percent,
+                tUserStory: this.props.userStory,
+                taskKey: this.props.taskKey,
+                something: this.props.somethingVal,
                 dataSource: new ListView.DataSource({
                     rowHasChanged: (row1, row2) => row1 !== row2,
                 }),
             };
-             
             this.pblRef = this.getRef().child('prodBacklogs');
             this.projectsRef = this.getRef().child('projects');
         }
@@ -69,7 +70,9 @@ var currentPercentage = 0;
    userList(){
        var correctProjKey = this.state.projectKey;
        var correctUserStoryKey = this.state.userStoryKey;
+       var correctUserName = this.state.tMemberAssigned;
        users = [];
+       var count = 0;
        this.projectsRef.on("value", (snapshot) => {
            snapshot.forEach((child) => { //each project
                if(child.key == correctProjKey){
@@ -103,36 +106,41 @@ var currentPercentage = 0;
 
            });
        });
+
        this.pblRef.on("value", (snapshot) => {
         currentPercentage = 0;
         snapshot.forEach((child) => { //each userstory
-            if(child.key == correctUserStoryKey){
                 child.forEach(function(data)  { //each attribute
                    var itemName = data.key;
                    var itemValue = data.val();
                    var currentProjectKey = '';
-
+                   var currentUserStoryKey = '';
                    if(itemName == '_userStory'){
                        userStory = itemValue;
                    }
-                    if(itemName == 'tasks'){
-                            data.forEach(function(data1){
-                                data1.forEach(function(data2){
-                                    var name = data2.key;
-                                    var value = data2.val();
-                                    if(name == 'percentage'){
-                                        if(value != ""){
-                                            var numValue = parseInt(value, 10);
-                                            currentPercentage = currentPercentage + numValue;
+                   else if(itemName == 'project'){
+                       currentUserStoryKey = itemValue;
+                        if(currentUserStoryKey == correctUserStoryKey){
+                        child.forEach(function(data4){
+                            var itemName2 = data4.key;
+                            if(itemName2 == 'tasks'){
+                                data4.forEach(function(data1){
+                                    data1.forEach(function(data2){
+                                        var name = data2.key;
+                                        var value = data2.val();
+                                        if(name == 'percentage'){
+                                            if(value != ""){
+                                                var numValue = parseInt(value, 10);
+                                                currentPercentage = currentPercentage + numValue;
+                                            }    
                                         }
-    
-                                    }
-                                });
-                            }); 
-
+                                    });
+                                }); 
+                            }
+                        });
+                    }
                    }
                 });
-            }
         });
        });
         this.setState({
@@ -151,7 +159,6 @@ var currentPercentage = 0;
     this.setState({tPercentage: newText})
 }
 
-
     render() {
         return (
             <ScrollView style={styles.scroll}>
@@ -159,13 +166,14 @@ var currentPercentage = 0;
                 <StatusBar title="Task Item" />
             </Container>
             <Container>
-             <Label text="Task for User Story" />
-             <Text>{userStory}</Text>
+             <Label text="Task for User Story" />   
+                <Text>{this.state.tUserStory}</Text>
             </Container>
 	     <Container>
              <Label text="Description of Task" />
                  <TextInput
                 style={styles.textInput} 
+                defaultValue={this.state.tDescription}
                 autoCapitalize= 'none'
                 returnKeyType = "next"
                 onChangeText={(text) =>{
@@ -176,6 +184,7 @@ var currentPercentage = 0;
              <Label text="Percentage of User Story" />
                  <TextInput
                 style={styles.textInput} 
+                defaultValue={this.state.tPercentage}
                 keyboardType = 'numeric'
                 onChangeText = {(text)=> this.onChanged(text)}
                 value = {this.state.tPercentage}
@@ -186,15 +195,15 @@ var currentPercentage = 0;
              <Label text="Member Assigned to Task" />
                 <RadioForm
                     radio_props={users}
-                    initial={-1}
+                    initial={this.state.something}
                     onPress={(value) => {this.setState({tMemberAssigned:value})}}/>
             </Container>
             <View style={styles.footer}>
                 <Container>
                     <Button 
-                        label="Create Task"
+                        label="Edit Task"
                         styles={{button: styles.primaryButton, label: styles.buttonWhiteText}} 
-                        onPress={this.toCreateTask.bind(this)} />
+                        onPress={this.toEditTask.bind(this)} />
                 </Container>
                 <Container>
                     <Button 
@@ -223,47 +232,58 @@ var currentPercentage = 0;
         });
     }
 
-    toCreateTask(){
+    toEditTask(){
         var correctDescription = this.state.tDescription;
         var correctMemberAssigned = this.state.tMemberAssigned;
         var correctPercentage = this.state.tPercentage;
         var correctProjectName = this.state.projectName;
+        var correctUserStory = this.state.tUserStory;
         var correctUserStoryKey = this.state.userStoryKey;
         var correctProjKey = this.state.projectKey;
         var correctUserName = this.state.username;
         var correctRole = this.state.role;
+        var correctTaskKey = this.state.taskKey;
         
         var once = false;
         var done = false;
         var percentBoolean = false;
+        var currentUserStoryKey = '';
      
         if(once != true){
         this.pblRef.on("value", (snapshot) => {
             snapshot.forEach((child) => { //for each pbl item
-                if(child.key == correctUserStoryKey){
                     child.forEach(function(data){ //for each attribute
                         var itemName = data.key;
-                        if(correctDescription == "" && once != true){
-                            once = true;
+                        var itemValue = data.val();
+
+                        if(itemName == "project"){
+                            currentUserStoryKey = itemValue;
                         }
-                        var correctPercentageConvert = parseInt(correctPercentage, 10);
-                        var totalPercentage = parseInt(currentPercentage + correctPercentageConvert, 10);
-                        if(totalPercentage > 100){
-                            once = true;
-                            percentBoolean = true;
-                        }
-                        if(itemName == 'tasks' && once !=true){
-                            once = true;
-                            done = true;
-                            data.ref.push( {
-                                _description : correctDescription ,
-                                status: 'ToDo',
-                                percentage: correctPercentage,
-                                assignedMember: correctMemberAssigned,
-                            })
+                        if(currentUserStoryKey == correctUserStoryKey){
+                            if(correctDescription == "" && once != true){
+                                once = true;
+                            }
+                            var correctPercentageConvert = parseInt(correctPercentage, 10);
+                            var totalPercentage = parseInt(currentPercentage + correctPercentageConvert, 10);
+                            if(totalPercentage > 100){
+                                once = true;
+                                percentBoolean = true;
+                            }
+                            if(itemName == 'tasks' && once !=true){
+                                data.forEach(function(data2){
+                                    if(data2.key == correctTaskKey){
+                                        once = true;
+                                        done = true;
+                                        data2.ref.update( {
+                                            _description : correctDescription,
+                                            percentage: correctPercentage,
+                                            assignedMember: correctMemberAssigned,
+                                        })
+                                    }
+                                });
+                            }
                         }
                     });
-                }
             });
         });
     }
@@ -273,19 +293,26 @@ var currentPercentage = 0;
         var correctProjKey = this.state.projectKey;
         var correctUserName = this.state.username;
         var correctRole = this.state.role;
+        var correctSomething = this.state.something;
         AlertIOS.alert(
             'Error!',
             'A description is required.' + '\n' + 'Please fill in a task description before continuing.',
             [
             {text: 'Okay', onPress: () => this.props.navigator.push({
-                                    title: 'Add a Task',
-                        component: AddTask,
+                                    title: 'Edit a Task',
+                        component: EditTask,
                         passProps:{
+                            role: correctRole,
                             username: correctUserName,
                             projectName: correctProjectName,
-                            projectKey: correctProjKey,
+                            projectKey:correctProjKey,
+                            description: correctDescription,
+                            userStory: correctUserStory,
+                            membAssign: correctMemberAssigned,
+                            percent: correctPercentage,
                             userStoryKey: correctUserStoryKey,
-                            role: correctRole,
+                            taskKey: correctTaskKey,
+                            something: correctSomething,
                         }
                         }), style: 'cancel'},
             ]
@@ -297,19 +324,26 @@ var currentPercentage = 0;
         var correctProjKey = this.state.projectKey;
         var correctUserName = this.state.username;
         var correctRole = this.state.role;
+        var correctSomething = this.state.something;
         AlertIOS.alert(
             'Error!',
             'Please enter a percentage that is less than 100%.' + '\n' + 'Current total percentage is ' + [currentPercentage] + '%.',
             [
             {text: 'Okay', onPress: () => this.props.navigator.push({
-                                    title: 'Add a Task',
-                        component: AddTask,
+                                    title: 'Edit a Task',
+                        component: EditTask,
                         passProps:{
+                            role: correctRole,
                             username: correctUserName,
                             projectName: correctProjectName,
-                            projectKey: correctProjKey,
+                            projectKey:correctProjKey,
+                            description: correctDescription,
+                            userStory: correctUserStory,
+                            membAssign: correctMemberAssigned,
+                            percent: correctPercentage,
                             userStoryKey: correctUserStoryKey,
-                            role: correctRole,
+                            taskKey: correctTaskKey,
+                            something: correctSomething,
                         }
                         }), style: 'cancel'},
             ]
